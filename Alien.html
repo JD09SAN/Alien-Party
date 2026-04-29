@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alien Party Invasion</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            overflow: hidden;
+            background: #0a0a12;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+        
+        .ui-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;s
+        }
+        .ui-overlay * {
+            pointer-events: auto;
+         }
+        
+        .title {
+            position: absolute;
+            top: 30px;
+            left: 47.5%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+        
+        .title h1 {
+            font-size: clamp(2rem, 6vw, 4rem);
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 
+                0 0 20px #00ffcc,
+                0 0 40px #00ffcc,
+                0 0 60px #ff00aa;
+            letter-spacing: 3px;
+            animation: titlePulse 2s ease-in-out infinite;
+        }
+        
+        .title p {
+            font-size: clamp(0.9rem, 2vw, 1.2rem);
+            color: #88ffdd;
+            margin-top: 10px;
+            opacity: 0.9;
+        }
+        
+        @keyframes titlePulse {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.02); }
+        }
+        
+        .party-stats {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            background: rgba(0, 20, 30, 0.8);
+            border: 1px solid #00ffcc44;
+            border-radius: 15px;
+            padding: 20px 25px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            color: #fff;
+        }
+        
+        .stat-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .stat-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        .stat-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            background: linear-gradient(90deg, #00ffcc, #ff00aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .controls-hint {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(0, 20, 30, 0.8);
+            border: 1px solid #ff00aa44;
+            border-radius: 15px;
+            padding: 15px 20px;
+            color: #ffaacc;
+            font-size: 0.85rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .beat-indicator {
+            position: absolute;
+            top: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+        }
+        
+        .beat-bar {
+            width: 6px;
+            height: 30px;
+            background: linear-gradient(to top, #00ffcc, #ff00aa);
+            border-radius: 3px;
+            animation: beat 0.5s ease-in-out infinite;
+        }
+        
+        .beat-bar:nth-child(1) { animation-delay: 0s; }
+        .beat-bar:nth-child(2) { animation-delay: 0.1s; }
+        .beat-bar:nth-child(3) { animation-delay: 0.2s; }
+        .beat-bar:nth-child(4) { animation-delay: 0.3s; }
+        .beat-bar:nth-child(5) { animation-delay: 0.4s; }
+        
+        @keyframes beat {
+            0%, 100% { transform: scaleY(0.3); }
+            50% { transform: scaleY(1); }
+        }
+        
+        .glow-orb {
+            position: fixed;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.3;
+            pointer-events: none;
+            animation: orbFloat 8s ease-in-out infinite;
+        }
+        
+        .orb-1 {
+            top: 10%;
+            left: 10%;
+            background: #00ffcc;
+        }
+        
+        .orb-2 {
+            bottom: 10%;
+            right: 10%;
+            background: #ff00aa;
+            animation-delay: -4s;
+        }
+        
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -30px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+
+  .action-buttons {
+        position: absolute;
+        top: 30px;
+        right: 30px;
+        display: flex;
+        gap: 12px;
+        padding: 8px 12px;
+        background: rgba(0,0,0,0.3);
+        border-radius: 30px;
+        backdrop-filter: blur(10px);
+        border: 1px solid #ffffff22;
+    }
+
+ .subtitle {
+    position: absolute;
+    top: 158px;
+    left: 2%;
+    transform: translateX(-50%);
+
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+
+    background: linear-gradient(90deg, #00ffcc, #ff00aa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    text-shadow: 0 0 10px #00ffcc55;
+    animation: glowPulse 2s ease-in-out infinite;
+    opacity: 0.9;
+}
+
+@keyframes glowPulse {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
+}
+
+.btn {
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-weight: bold;
+    text-decoration: none;
+    color: #fff;
+    font-size: 0.9rem;
+    transition: 0.3s ease;
+    backdrop-filter: blur(10px);
+    border: 1px solid transparent;
+}
+
+.btn-x {
+    background: rgba(0,0,0,0.6);
+    border-color: #ffffff33;
+}
+
+.btn-telegram {
+    background: rgba(0, 136, 204, 0.3);
+    border-color: #0088cc;
+}
+
+.btn-pump {
+    background: linear-gradient(90deg, #00ffa3, #00ff9f);
+    border: 1px solid #00ffa3;
+    box-shadow: 0 0 20px #00ffa3aa;
+    color: #000; /* important for contrast */
+    font-weight: 600;
+}
+
+.btn-raydium {
+    background: linear-gradient(90deg, #7c3aed, #00c2ff);
+    border: 1px solid #7c3aed;
+    box-shadow: 0 0 25px #7c3aed, 0 0 40px #00c2ff;
+    color: #fff;
+    font-weight: bold;
+    transform: scale(1.05);
+}
+
+.btn:hover {
+    transform: translateY(-2px) scale(1.08);
+    box-shadow: 0 0 25px rgba(255,255,255,0.4);
+}
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    
+    <div class="ui-overlay">
+        <div class="title">
+            <h1>ALIEN PARTY INVASION</h1>
+            <p class="subtitle">The wildest meme token in the galaxy </p>
+        </div>
+<div class="action-buttons">
+    <a href="https://x.com/yourlink" target="_blank" class="btn btn-x">X</a>
+    
+    <a href="https://t.me/yourlink" target="_blank" class="btn btn-telegram">Telegram</a>
+    
+    <a href="https://pump.fun/coin/YOURTOKEN" target="_blank" class="btn btn-pump">
+        Pump.fun
+    </a>
+    
+    <a href="https://raydium.io/swap/?inputCurrency=SOL&outputCurrency=YOUR_TOKEN_ADDRESS" target="_blank" class="btn btn-raydium">
+        Raydium
+    </a>
+</div>
+        
+        <div class="beat-indicator">
+            <div class="beat-bar"></div>
+            <div class="beat-bar"></div>
+            <div class="beat-bar"></div>
+            <div class="beat-bar"></div>
+            <div class="beat-bar"></div>
+        </div>
+        
+        <div class="party-stats">
+<div class="stat-item">
+    <div class="stat-icon" style="background: linear-gradient(135deg, #66ff6622, #66ff6644);">
+        <span>👥</span>
+    </div>
+    <div>
+        <div style="font-size: 0.75rem; opacity: 0.7;">Token Holders</div>
+        <div class="stat-value" id="holder-count">10</div>
+    </div>
+</div>
+            <div class="stat-item">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #00ffcc22, #00ffcc44);">
+                    <span>👽</span>
+                </div>
+                <div>
+                    <div style="font-size: 0.75rem; opacity: 0.7;">Party Aliens</div>
+                    <div class="stat-value" id="alien-count">8</div>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #ff00aa22, #ff00aa44);">
+                    <span>🎉</span>
+                </div>
+                <div>
+                    <div style="font-size: 0.75rem; opacity: 0.7;">Confetti Count</div>
+                    <div class="stat-value" id="confetti-count">500</div>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #ffcc0022, #ffcc0044);">
+                    <span>🎵</span>
+                </div>
+                <div>
+                    <div style="font-size: 0.75rem; opacity: 0.7;">BPM</div>
+                    <div class="stat-value">128</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls-hint">
+            Drag to rotate | Scroll to zoom | Click aliens to make them dance!
+        </div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+    
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        
+        // Scene setup
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x0a0a12, 0.02);
+        
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 8, 15);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendChild(renderer.domElement);
+        
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.maxPolarAngle = Math.PI / 2.1;
+        controls.minDistance = 8;
+        controls.maxDistance = 35;
+        
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0x222244, 0.5);
+        scene.add(ambientLight);
+        
+        const mainLight = new THREE.DirectionalLight(0xffffff, 1);
+        mainLight.position.set(10, 20, 10);
+        mainLight.castShadow = true;
+        mainLight.shadow.mapSize.width = 2048;
+        mainLight.shadow.mapSize.height = 2048;
+        mainLight.shadow.camera.near = 0.5;
+        mainLight.shadow.camera.far = 50;
+        mainLight.shadow.camera.left = -20;
+        mainLight.shadow.camera.right = 20;
+        mainLight.shadow.camera.top = 20;
+        mainLight.shadow.camera.bottom = -20;
+        scene.add(mainLight);
+        
+        // Party colored lights
+        const partyLights = [];
+        const lightColors = [0x00ffcc, 0xff00aa, 0xffcc00, 0x00aaff];
+        
+        lightColors.forEach((color, i) => {
+            const light = new THREE.PointLight(color, 2, 25);
+            const angle = (i / lightColors.length) * Math.PI * 2;
+            light.position.set(Math.cos(angle) * 8, 6, Math.sin(angle) * 8);
+            scene.add(light);
+            partyLights.push({ light, baseAngle: angle });
+        });
+        
+        // Dance floor
+        const floorGeometry = new THREE.CircleGeometry(20, 64);
+        const floorMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                uTime: { value: 0 },
+                uColor1: { value: new THREE.Color(0x001122) },
+                uColor2: { value: new THREE.Color(0x00ffcc) },
+                uColor3: { value: new THREE.Color(0xff00aa) }
+            },
+            vertexShader: `
+                varying vec2 vUv;
+                varying vec3 vPosition;
+                void main() {
+                    vUv = uv;
+                    vPosition = position;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform float uTime;
+                uniform vec3 uColor1;
+                uniform vec3 uColor2;
+                uniform3 uColor3;
+                varying vec2 vUv;
+                varying vec3 vPosition;
+                
+                void main() {
+                    float dist = length(vPosition.xy);
+                    float rings = sin(dist * 2.0 - uTime * 3.0) * 0.5 + 0.5;
+                    float pulse = sin(uTime * 2.0 + dist * 0.5) * 0.5 + 0.5;
+                    
+                    vec3 color = mix(uColor1, mix(uColor2, uColor3, rings), pulse * 0.6);
+                    
+                    float alpha = smoothstep(20.0, 15.0, dist);
+                    gl_FragColor = vec4(color, alpha);
+                }
+            `
+        });
+        
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.rotation.x = -Math.PI / 2;
+        floor.receiveShadow = true;
+        scene.add(floor);
+        
+        // Grid lines on floor
+        const gridHelper = new THREE.GridHelper(40, 40, 0x00ffcc, 0x003344);
+        gridHelper.position.y = 0.01;
+        gridHelper.material.opacity = 0.3;
+        gridHelper.material.transparent = true;
+        scene.add(gridHelper);
+        
+        // UFO creation
+        function createUFO() {
+            const ufoGroup = new THREE.Group();
+            
+            // Main saucer body
+            const saucerGeom = new THREE.CylinderGeometry(4, 3.5, 0.8, 32);
+            const saucerMat = new THREE.MeshStandardMaterial({
+                color: 0xcccccc,
+                metalness: 0.9,
+                roughness: 0.2,
+                emissive: 0x222233,
+                emissiveIntensity: 0.2
+            });
+            const saucer = new THREE.Mesh(saucerGeom, saucerMat);
+            saucer.castShadow = true;
+            ufoGroup.add(saucer);
+            
+            // Dome
+            const domeGeom = new THREE.SphereGeometry(2, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+            const domeMat = new THREE.MeshStandardMaterial({
+                color: 0x88ffff,
+                metalness: 0.1,
+                roughness: 0.1,
+                transparent: true,
+                opacity: 0.6,
+                emissive: 0x00ffcc,
+                emissiveIntensity: 0.3
+            });
+            const dome = new THREE.Mesh(domeGeom, domeMat);
+            dome.position.y = 0.4;
+            ufoGroup.add(dome);
+            
+            // Bottom ring
+            const ringGeom = new THREE.TorusGeometry(3.3, 0.2, 16, 48);
+            const ringMat = new THREE.MeshStandardMaterial({
+                color: 0xffcc00,
+                emissive: 0xffcc00,
+                emissiveIntensity: 0.5,
+                metalness: 0.8,
+                roughness: 0.2
+            });
+            const ring = new THREE.Mesh(ringGeom, ringMat);
+            ring.rotation.x = Math.PI / 2;
+            ring.position.y = -0.4;
+            ufoGroup.add(ring);
+            
+            // Lights around the UFO
+            const ufoLights = [];
+            for (let i = 0; i < 12; i++) {
+                const angle = (i / 12) * Math.PI * 2;
+                const lightGeom = new THREE.SphereGeometry(0.15, 16, 16);
+                const lightMat = new THREE.MeshBasicMaterial({
+                    color: i % 2 === 0 ? 0x00ffcc : 0xff00aa
+                });
+                const lightMesh = new THREE.Mesh(lightGeom, lightMat);
+                lightMesh.position.set(
+                    Math.cos(angle) * 3.7,
+                    0,
+                    Math.sin(angle) * 3.7
+                );
+                ufoGroup.add(lightMesh);
+                ufoLights.push({ mesh: lightMesh, offset: i * 0.5 });
+            }
+            
+            // Beam of light
+            const beamGeom = new THREE.ConeGeometry(2.5, 8, 32, 1, true);
+            const beamMat = new THREE.ShaderMaterial({
+                uniforms: {
+                    uTime: { value: 0 },
+                    uColor: { value: new THREE.Color(0x00ffcc) }
+                },
+                vertexShader: `
+                    varying vec2 vUv;
+                    void main() {
+                        vUv = uv;
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    uniform float uTime;
+                    uniform vec3 uColor;
+                    varying vec2 vUv;
+                    
+                    void main() {
+                        float alpha = (1.0 - vUv.y) * 0.4;
+                        alpha *= sin(vUv.y * 20.0 - uTime * 5.0) * 0.3 + 0.7;
+                        gl_FragColor = vec4(uColor, alpha);
+                    }
+                `,
+                transparent: true,
+                side: THREE.DoubleSide,
+                depthWrite: false
+            });
+            
+            const beam = new THREE.Mesh(beamGeom, beamMat);
+            beam.position.y = -4.8;
+            beam.rotation.x = Math.PI;
+            ufoGroup.add(beam);
+            
+            ufoGroup.userData = { lights: ufoLights, beam };
+            return ufoGroup;
+        }
+        
+        const ufo = createUFO();
+        ufo.position.y = 6;
+        scene.add(ufo);
+        
+        // Alien creation
+        const aliens = [];
+        const alienColors = [0x00ff88, 0xff66aa, 0x66aaff, 0xaaff66, 0xffaa00, 0xaa66ff];
+        
+        function createAlien(colorIndex) {
+            const alienGroup = new THREE.Group();
+            const color = alienColors[colorIndex % alienColors.length];
+            
+            // Body
+            const bodyGeom = new THREE.CapsuleGeometry(0.4, 0.8, 8, 16);
+            const bodyMat = new THREE.MeshStandardMaterial({
+                color: color,
+                metalness: 0.3,
+                roughness: 0.6,
+                emissive: color,
+                emissiveIntensity: 0.2
+            });
+            const body = new THREE.Mesh(bodyGeom, bodyMat);
+            body.castShadow = true;
+            alienGroup.add(body);
+            
+            // Head
+            const headGeom = new THREE.SphereGeometry(0.45, 16, 16);
+            headGeom.scale(1, 1.2, 0.9);
+            const headMat = new THREE.MeshStandardMaterial({
+                color: color,
+                metalness: 0.2,
+                roughness: 0.5,
+                emissive: color,
+                emissiveIntensity: 0.3
+            });
+            const head = new THREE.Mesh(headGeom, headMat);
+            head.position.y = 0.9;
+            head.castShadow = true;
+            alienGroup.add(head);
+            
+            // Eyes
+            const eyeGeom = new THREE.SphereGeometry(0.12, 16, 16);
+            const eyeMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+            
+            const leftEye = new THREE.Mesh(eyeGeom, eyeMat);
+            leftEye.position.set(-0.15, 0.95, 0.35);
+            alienGroup.add(leftEye);
+            
+            const rightEye = new THREE.Mesh(eyeGeom, eyeMat);
+            rightEye.position.set(0.15, 0.95, 0.35);
+            alienGroup.add(rightEye);
+            
+            // Eye glow
+            const glowGeom = new THREE.SphereGeometry(0.08, 16, 16);
+            const glowMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            
+            const leftGlow = new THREE.Mesh(glowGeom, glowMat);
+            leftGlow.position.set(-0.15, 0.95, 0.42);
+            alienGroup.add(leftGlow);
+            
+            const rightGlow = new THREE.Mesh(glowGeom, glowMat);
+            rightGlow.position.set(0.15, 0.95, 0.42);
+            alienGroup.add(rightGlow);
+            
+            // Arms
+            const armGeom = new THREE.CapsuleGeometry(0.1, 0.5, 4, 8);
+            const armMat = new THREE.MeshStandardMaterial({
+                color: color,
+                metalness: 0.3,
+                roughness: 0.6
+            });
+            
+            const leftArm = new THREE.Mesh(armGeom, armMat);
+            leftArm.position.set(-0.55, 0.2, 0);
+            leftArm.rotation.z = 0.3;
+            alienGroup.add(leftArm);
+            
+            const rightArm = new THREE.Mesh(armGeom, armMat);
+            rightArm.position.set(0.55, 0.2, 0);
+            rightArm.rotation.z = -0.3;
+            alienGroup.add(rightArm);
+            
+            // Legs
+            const legGeom = new THREE.CapsuleGeometry(0.12, 0.4, 4, 8);
+            const legMat = new THREE.MeshStandardMaterial({
+                color: color,
+                metalness: 0.3,
+                roughness: 0.6
+            });
+            
+            const leftLeg = new THREE.Mesh(legGeom, legMat);
+            leftLeg.position.set(-0.2, -0.7, 0);
+            alienGroup.add(leftLeg);
+            
+            const rightLeg = new THREE.Mesh(legGeom, legMat);
+            rightLeg.position.set(0.2, -0.7, 0);
+            alienGroup.add(rightLeg);
+            
+            alienGroup.userData = {
+                body, head, leftArm, rightArm, leftLeg, rightLeg,
+                dancePhase: Math.random() * Math.PI * 2,
+                danceSpeed: 3 + Math.random() * 2,
+                isExcited: false,
+                excitementTimer: 0
+            };
+            
+            return alienGroup;
+        }
+        
+        // Create aliens in circle around UFO
+        for (let i = 0; i < 8; i++) {
+            const alien = createAlien(i);
+            const angle = (i / 8) * Math.PI * 2;
+            const radius = 5 + Math.random() * 2;
+            alien.position.set(
+                Math.cos(angle) * radius,
+                0,
+                Math.sin(angle) * radius
+            );
+            alien.lookAt(0, 0, 0);
+            alien.rotation.y += Math.PI;
+            scene.add(alien);
+            aliens.push(alien);
+        }
+        
+        // Disco ball
+        function createDiscoBall() {
+            const discoGroup = new THREE.Group();
+            
+            const ballGeom = new THREE.SphereGeometry(1.5, 32, 32);
+            const ballMat = new THREE.MeshStandardMaterial({
+                color: 0xeeeeee,
+                metalness: 1,
+                roughness: 0.1,
+                envMapIntensity: 2
+            });
+            const ball = new THREE.Mesh(ballGeom, ballMat);
+            discoGroup.add(ball);
+            
+            // Mirror tiles effect via shader
+            const tilesMat = new THREE.ShaderMaterial({
+                uniforms: {
+                    uTime: { value: 0 }
+                },
+                vertexShader: `
+                    varying vec3 vNormal;
+                    varying vec3 vPosition;
+                    void main() {
+                        vNormal = normalize(normalMatrix * normal);
+                        vPosition = position;
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    uniform float uTime;
+                    varying vec3 vNormal;
+                    varying vec3 vPosition;
+                    
+                    void main() {
+                        vec3 color1 = vec3(0.0, 1.0, 0.8);
+                        vec3 color2 = vec3(1.0, 0.0, 0.67);
+                        vec3 color3 = vec3(1.0, 0.8, 0.0);
+                        
+                        float t = sin(uTime * 2.0 + vPosition.y * 5.0) * 0.5 + 0.5;
+                        float t2 = cos(uTime * 1.5 + vPosition.x * 5.0) * 0.5 + 0.5;
+                        
+                        vec3 finalColor = mix(mix(color1, color2, t), color3, t2);
+                        float fresnel = pow(1.0 - abs(dot(vNormal, vec3(0.0, 0.0, 1.0))), 2.0);
+                        
+                        gl_FragColor = vec4(finalColor * (0.5 + fresnel), 1.0);
+                    }
+                `
+            });
+            
+            const tiles = new THREE.Mesh(ballGeom.clone(), tilesMat);
+            discoGroup.add(tiles);
+            
+            return discoGroup;
+        }
+        
+        const discoBall = createDiscoBall();
+        discoBall.position.set(0, 10, 0);
+        scene.add(discoBall);
+        
+        // Confetti system
+        const confettiCount = 500;
+        const confettiGeometry = new THREE.BufferGeometry();
+        const confettiPositions = new Float32Array(confettiCount * 3);
+        const confettiColors = new Float32Array(confettiCount * 3);
+        const confettiSizes = new Float32Array(confettiCount);
+        const confettiVelocities = [];
+        
+        const confettiColorOptions = [
+            new THREE.Color(0x00ffcc),
+            new THREE.Color(0xff00aa),
+            new THREE.Color(0xffcc00),
+            new THREE.Color(0x00aaff),
+            new THREE.Color(0xff6644),
+            new THREE.Color(0xaaff00)
+        ];
+        
+        for (let i = 0; i < confettiCount; i++) {
+            confettiPositions[i * 3] = (Math.random() - 0.5) * 40;
+            confettiPositions[i * 3 + 1] = Math.random() * 20;
+            confettiPositions[i * 3 + 2] = (Math.random() - 0.5) * 40;
+            
+            const col = confettiColorOptions[Math.floor(Math.random() * confettiColorOptions.length)];
+            confettiColors[i * 3] = col.r;
+            confettiColors[i * 3 + 1] = col.g;
+            confettiColors[i * 3 + 2] = col.b;
+            
+            confettiSizes[i] = 0.1 + Math.random() * 0.15;
+            
+            confettiVelocities.push({
+                x: (Math.random() - 0.5) * 0.05,
+                y: -0.02 - Math.random() * 0.03,
+                z: (Math.random() - 0.5) * 0.05,
+                rotSpeed: Math.random() * 0.1
+            });
+        }
+        
+        confettiGeometry.setAttribute('position', new THREE.BufferAttribute(confettiPositions, 3));
+        confettiGeometry.setAttribute('aColor', new THREE.BufferAttribute(confettiColors, 3));
+        confettiGeometry.setAttribute('aSize', new THREE.BufferAttribute(confettiSizes, 1));
+        
+        const confettiMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                uTime: { value: 0 }
+            },
+            vertexShader: `
+                attribute vec3 aColor;
+                attribute float aSize;
+                varying vec3 vColor;
+                uniform float uTime;
+                
+                void main() {
+                    vColor = aColor;
+                    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                    gl_PointSize = aSize * (200.0 / -mvPosition.z);
+                    gl_Position = projectionMatrix * mvPosition;
+                }
+            `,
+            fragmentShader: `
+                varying vec3 vColor;
+                
+                void main() {
+                    float dist = length(gl_PointCoord - vec2(0.5));
+                    if (dist > 0.5) discard;
+                    
+                    float alpha = 1.0 - smoothstep(0.3, 0.5, dist);
+                    gl_FragColor = vec4(vColor, alpha);
+                }
+            `,
+            transparent: true,
+            depthWrite: false
+        });
+        
+        const confetti = new THREE.Points(confettiGeometry, confettiMaterial);
+        scene.add(confetti);
+        
+        // Speaker decorations
+        function createSpeaker(x, z, rotation) {
+            const speakerGroup = new THREE.Group();
+            
+            const boxGeom = new THREE.BoxGeometry(1.5, 2, 1.2);
+            const boxMat = new THREE.MeshStandardMaterial({
+                color: 0x222222,
+                metalness: 0.5,
+                roughness: 0.5
+            });
+            const box = new THREE.Mesh(boxGeom, boxMat);
+            box.castShadow = true;
+            speakerGroup.add(box);
+            
+            // Speaker cone
+            const coneGeom = new THREE.CircleGeometry(0.5, 32);
+            const coneMat = new THREE.MeshStandardMaterial({
+                color: 0x111111,
+                metalness: 0.8,
+                roughness: 0.2
+            });
+            const cone = new THREE.Mesh(coneGeom, coneMat);
+            cone.position.z = 0.61;
+            speakerGroup.add(cone);
+            
+            // Glow ring
+            const ringGeom = new THREE.RingGeometry(0.45, 0.55, 32);
+            const ringMat = new THREE.MeshBasicMaterial({
+                color: 0xff00aa,
+                transparent: true,
+                opacity: 0.8,
+                side: THREE.DoubleSide
+            });
+            const glowRing = new THREE.Mesh(ringGeom, ringMat);
+            glowRing.position.z = 0.62;
+            speakerGroup.add(glowRing);
+            
+            speakerGroup.position.set(x, 1, z);
+            speakerGroup.rotation.y = rotation;
+            
+            return speakerGroup;
+        }
+        
+        const speakers = [
+            createSpeaker(-9, -9, Math.PI / 4),
+            createSpeaker(9, -9, -Math.PI / 4),
+            createSpeaker(-9, 9, Math.PI * 3 / 4),
+            createSpeaker(9, 9, -Math.PI * 3 / 4)
+        ];
+        speakers.forEach(s => scene.add(s));
+        
+        // Balloons
+        const balloons = [];
+        function createBalloon(x, y, z, color) {
+            const balloonGroup = new THREE.Group();
+            
+            const balloonGeom = new THREE.SphereGeometry(0.4, 16, 16);
+            balloonGeom.scale(1, 1.3, 1);
+            const balloonMat = new THREE.MeshStandardMaterial({
+                color: color,
+                metalness: 0.3,
+                roughness: 0.4,
+                emissive: color,
+                emissiveIntensity: 0.2
+            });
+            const balloon = new THREE.Mesh(balloonGeom, balloonMat);
+            balloonGroup.add(balloon);
+            
+            // String
+            const stringGeom = new THREE.CylinderGeometry(0.01, 0.01, 1.5, 8);
+            const stringMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const string = new THREE.Mesh(stringGeom, stringMat);
+            string.position.y = -1.2;
+            balloonGroup.add(string);
+            
+            balloonGroup.position.set(x, y, z);
+            balloonGroup.userData.baseY = y;
+            balloonGroup.userData.phase = Math.random() * Math.PI * 2;
+            
+            return balloonGroup;
+        }
+        
+        const balloonColors = [0xff0066, 0x00ffcc, 0xffcc00, 0x00aaff, 0xff6600, 0xaa00ff];
+        for (let i = 0; i < 15; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const radius = 6 + Math.random() * 8;
+            const balloon = createBalloon(
+                Math.cos(angle) * radius,
+                5 + Math.random() * 5,
+                Math.sin(angle) * radius,
+                balloonColors[Math.floor(Math.random() * balloonColors.length)]
+            );
+            scene.add(balloon);
+            balloons.push(balloon);
+        }
+        
+        // Raycaster for interaction
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        
+        function onClick(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(aliens, true);
+            
+            if (intersects.length > 0) {
+                let alien = intersects[0].object;
+                while (alien.parent && !aliens.includes(alien)) {
+                    alien = alien.parent;
+                }
+                if (alien.userData.isExcited !== undefined) {
+                    alien.userData.isExcited = true;
+                    alien.userData.excitementTimer = 2;
+                }
+            }
+        }
+        
+        window.addEventListener('click', onClick);
+        
+        // Animation
+        const clock = new THREE.Clock();
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const time = clock.getElapsedTime();
+            const delta = clock.getDelta();
+            
+            // Update floor shader
+            floorMaterial.uniforms.uTime.value = time;
+            
+            // Animate UFO
+            ufo.position.y = 6 + Math.sin(time * 0.5) * 0.5;
+            ufo.rotation.y = time * 0.2;
+            
+            // UFO lights
+            if (ufo.userData.lights) {
+                ufo.userData.lights.forEach((lightData, i) => {
+                    const scale = 0.8 + Math.sin(time * 5 + lightData.offset) * 0.4;
+                    lightData.mesh.scale.setScalar(scale);
+                });
+            }
+            
+            // UFO beam
+            if (ufo.userData.beam) {
+                ufo.userData.beam.material.uniforms.uTime.value = time;
+            }
+            
+            // Animate aliens (dancing!)
+            aliens.forEach((alien, i) => {
+                const data = alien.userData;
+                data.dancePhase += data.danceSpeed * 0.016;
+                
+                const bounce = Math.abs(Math.sin(data.dancePhase)) * 0.3;
+                const sway = Math.sin(data.dancePhase * 2) * 0.2;
+                
+                const speedMultiplier = data.isExcited ? 3 : 1;
+                const bounceMult = data.isExcited ? 2 : 1;
+                
+                alien.position.y = bounce * bounceMult;
+                alien.rotation.y = sway * speedMultiplier;
+                
+                data.leftArm.rotation.x = Math.sin(data.dancePhase * 2) * 0.8 * speedMultiplier;
+                data.rightArm.rotation.x = -Math.sin(data.dancePhase * 2) * 0.8 * speedMultiplier;
+                data.leftArm.rotation.z = 0.3 + Math.sin(data.dancePhase) * 0.5 * speedMultiplier;
+                data.rightArm.rotation.z = -0.3 - Math.sin(data.dancePhase) * 0.5 * speedMultiplier;
+                
+                data.leftLeg.rotation.x = Math.sin(data.dancePhase) * 0.3 * speedMultiplier;
+                data.rightLeg.rotation.x = -Math.sin(data.dancePhase) * 0.3 * speedMultiplier;
+                
+                data.head.rotation.y = Math.sin(data.dancePhase * 1.5) * 0.3;
+                
+                if (data.isExcited) {
+                    data.excitementTimer -= 0.016;
+                    if (data.excitementTimer <= 0) {
+                        data.isExcited = false;
+                    }
+                }
+            });
+            
+            // Animate disco ball
+            discoBall.rotation.y = time * 0.5;
+            discoBall.children[1].material.uniforms.uTime.value = time;
+            discoBall.position.y = 10 + Math.sin(time) * 0.3;
+            
+            // Party lights orbit
+            partyLights.forEach((pl, i) => {
+                const angle = pl.baseAngle + time * 0.3;
+                pl.light.position.x = Math.cos(angle) * 8;
+                pl.light.position.z = Math.sin(angle) * 8;
+                pl.light.intensity = 2 + Math.sin(time * 3 + i) * 1;
+            });
+            
+            // Animate confetti
+            const positions = confetti.geometry.attributes.position.array;
+            for (let i = 0; i < confettiCount; i++) {
+                const vel = confettiVelocities[i];
+                positions[i * 3] += vel.x + Math.sin(time + i) * 0.01;
+                positions[i * 3 + 1] += vel.y;
+                positions[i * 3 + 2] += vel.z + Math.cos(time + i) * 0.01;
+                
+                // Reset if below ground
+                if (positions[i * 3 + 1] < 0) {
+                    positions[i * 3] = (Math.random() - 0.5) * 40;
+                    positions[i * 3 + 1] = 18 + Math.random() * 5;
+                    positions[i * 3 + 2] = (Math.random() - 0.5) * 40;
+                }
+            }
+            confetti.geometry.attributes.position.needsUpdate = true;
+            confettiMaterial.uniforms.uTime.value = time;
+            
+            // Animate balloons
+            balloons.forEach(balloon => {
+                balloon.position.y = balloon.userData.baseY + Math.sin(time + balloon.userData.phase) * 0.5;
+                balloon.rotation.z = Math.sin(time * 0.5 + balloon.userData.phase) * 0.2;
+                balloon.rotation.x = Math.cos(time * 0.3 + balloon.userData.phase) * 0.1;
+            });
+            
+            // Animate speakers glow
+            speakers.forEach((speaker, i) => {
+                const ring = speaker.children[2];
+                ring.material.opacity = 0.5 + Math.sin(time * 5 + i) * 0.4;
+                const hue = (time * 0.1 + i * 0.25) % 1;
+                ring.material.color.setHSL(hue, 1, 0.5);
+            });
+            
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        
+        animate();
+        
+        // Handle resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
+```
+
+This creates an immersive **Alien Party INVASION** scene featuring:
+
+**Visual Elements:**
+- **Hovering UFO** with animated lights, glowing dome, and a pulsing tractor beam
+- **8 Dancing Aliens** with unique colors, each doing their own dance moves (arms, legs, head bobbing)
+- **Disco Ball** spinning above with rainbow reflective shader
+- **Animated Dance Floor** with pulsing concentric rings and neon grid
+- **500+ Confetti Particles** falling continuously with physics
+- **Floating Balloons** bobbing gently in the air
+- **4 Giant Speakers** with pulsing glow rings around the perimeter
+
+**Interactions:**
+- **Click on any alien** to make them go into hyper-dance mode (excited state)
+- **Drag to rotate** the camera around the party
+- **Scroll to zoom** in/out
+- Full OrbitControls for exploring the scene
+
+**Dynamic Effects:**
+- Party lights orbit the scene with changing intensity
+- Beat indicator visualizer animates at the top
+- Background glow orbs float subtly
+- All materials have emissive properties for that neon party vibe
+- Fog adds atmospheric depth
+
+The color scheme uses vibrant cyan, hot pink, gold, and electric blue against a deep space background - no boring purple gradients here!
