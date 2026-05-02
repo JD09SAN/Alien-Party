@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Alien Party Invasion</title>
+    <title>Alien Party Invasion — Official Website</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -11,14 +13,22 @@
             box-sizing: border-box;
         }
         
-        body {
-            overflow: hidden;
-            background: #0a0a12;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-            touch-action: none;
-            overscroll-behavior: none;
+        html, body {
+            scroll-behavior: smooth;
         }
+        body {
+            overflow-x: hidden;
+            overflow-y: auto;
+            background: #020810;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior-y: none;
+            color: #eaf7ff;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #030510; }
+        ::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, #00ffcc, #a855f7); border-radius: 99px; }
         
         #canvas-container {
             width: 100vw;
@@ -26,6 +36,278 @@
             position: fixed;
             top: 0;
             left: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+        #canvas-container.interactive {
+            pointer-events: auto;
+        }
+
+        /* ===== STORY BACKGROUND LAYERS ===== */
+        .bg-deep-space {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            background: 
+                radial-gradient(ellipse at 50% 0%, #0a1628 0%, #020810 50%, #000205 100%);
+        }
+
+        /* Animated star field */
+        .stars-layer {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .stars-layer canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Nebula / galaxy glow patches */
+        .nebula {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 0;
+            animation: nebulaFade 4s ease-out forwards;
+        }
+
+        .nebula-1 {
+            width: 600px; height: 400px;
+            top: -5%; left: 10%;
+            background: radial-gradient(ellipse, rgba(88,28,135,0.35) 0%, rgba(15,23,42,0) 70%);
+            animation-delay: 0.5s;
+        }
+        .nebula-2 {
+            width: 500px; height: 500px;
+            top: 5%; right: -5%;
+            background: radial-gradient(ellipse, rgba(6,182,212,0.2) 0%, rgba(15,23,42,0) 70%);
+            animation-delay: 1s;
+        }
+        .nebula-3 {
+            width: 700px; height: 350px;
+            top: 20%; left: 30%;
+            background: radial-gradient(ellipse, rgba(236,72,153,0.15) 0%, rgba(15,23,42,0) 70%);
+            animation-delay: 1.5s;
+        }
+        .nebula-4 {
+            width: 400px; height: 400px;
+            bottom: 30%; left: -5%;
+            background: radial-gradient(ellipse, rgba(34,197,94,0.12) 0%, rgba(15,23,42,0) 70%);
+            animation-delay: 2s;
+        }
+
+        @keyframes nebulaFade {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Earth horizon glow at bottom */
+        .earth-horizon {
+            position: fixed;
+            bottom: 0; left: 0;
+            width: 100%; height: 45%;
+            z-index: 0;
+            pointer-events: none;
+            background: 
+                linear-gradient(to top,
+                    rgba(0,80,120,0.25) 0%,
+                    rgba(0,150,200,0.08) 15%,
+                    rgba(0,200,180,0.04) 30%,
+                    transparent 60%
+                );
+        }
+
+        /* Atmospheric entry glow — the "arriving" effect */
+        .atmosphere-entry {
+            position: fixed;
+            bottom: 0; left: 0;
+            width: 100%; height: 30%;
+            z-index: 0;
+            pointer-events: none;
+            background: 
+                radial-gradient(ellipse at 50% 100%,
+                    rgba(0,255,204,0.06) 0%,
+                    rgba(0,136,255,0.03) 40%,
+                    transparent 70%
+                );
+            animation: atmospherePulse 6s ease-in-out infinite;
+        }
+
+        @keyframes atmospherePulse {
+            0%, 100% { opacity: 0.6; transform: scaleY(1); }
+            50% { opacity: 1; transform: scaleY(1.1); }
+        }
+
+        /* City silhouette at the very bottom */
+        .city-silhouette {
+            position: fixed;
+            bottom: 0; left: 0;
+            width: 100%; height: 80px;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .city-silhouette svg {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            bottom: 0;
+        }
+
+        /* Shooting stars / meteor trails */
+        .shooting-star {
+            position: fixed;
+            width: 2px;
+            height: 2px;
+            background: #fff;
+            border-radius: 50%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        .shooting-star::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 80px;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.8), transparent);
+            transform-origin: left center;
+            transform: rotate(0deg);
+        }
+
+        .shooting-star-1 {
+            top: 12%; left: 60%;
+            animation: shootingStar 8s linear infinite;
+            animation-delay: 2s;
+        }
+        .shooting-star-1::after { transform: rotate(35deg); }
+
+        .shooting-star-2 {
+            top: 8%; left: 25%;
+            animation: shootingStar 12s linear infinite;
+            animation-delay: 6s;
+        }
+        .shooting-star-2::after { transform: rotate(25deg); }
+
+        .shooting-star-3 {
+            top: 18%; left: 75%;
+            animation: shootingStar 10s linear infinite;
+            animation-delay: 10s;
+        }
+        .shooting-star-3::after { transform: rotate(40deg); }
+
+        @keyframes shootingStar {
+            0% { opacity: 0; transform: translate(0, 0); }
+            2% { opacity: 1; }
+            15% { opacity: 1; transform: translate(-200px, 120px); }
+            17% { opacity: 0; }
+            100% { opacity: 0; }
+        }
+
+        /* Distant UFO fleet silhouettes arriving */
+        .distant-fleet {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .fleet-ufo {
+            position: absolute;
+            width: 8px;
+            height: 3px;
+            background: radial-gradient(ellipse, rgba(0,255,204,0.6) 0%, rgba(0,255,204,0) 70%);
+            border-radius: 50%;
+            filter: blur(1px);
+        }
+
+        .fleet-ufo::after {
+            content: '';
+            position: absolute;
+            top: 3px; left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 15px;
+            background: linear-gradient(to bottom, rgba(0,255,204,0.3), transparent);
+        }
+
+        .fleet-ufo-1 { top: 8%; left: 15%; animation: fleetDrift 20s ease-in-out infinite; }
+        .fleet-ufo-2 { top: 12%; left: 82%; animation: fleetDrift 25s ease-in-out infinite; animation-delay: -5s; }
+        .fleet-ufo-3 { top: 5%; left: 45%; animation: fleetDrift 18s ease-in-out infinite; animation-delay: -10s; transform: scale(0.7); }
+        .fleet-ufo-4 { top: 15%; left: 65%; animation: fleetDrift 22s ease-in-out infinite; animation-delay: -3s; transform: scale(0.5); }
+        .fleet-ufo-5 { top: 3%; left: 30%; animation: fleetDrift 30s ease-in-out infinite; animation-delay: -8s; transform: scale(0.4); }
+
+        @keyframes fleetDrift {
+            0%, 100% { transform: translate(0, 0); opacity: 0.4; }
+            25% { transform: translate(20px, 5px); opacity: 0.7; }
+            50% { transform: translate(-10px, 10px); opacity: 0.5; }
+            75% { transform: translate(15px, -5px); opacity: 0.8; }
+        }
+
+        /* Aurora borealis effect at mid-height (atmospheric interaction) */
+        .aurora {
+            position: fixed;
+            bottom: 15%; left: 0;
+            width: 100%; height: 25%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.3;
+            background: 
+                linear-gradient(90deg,
+                    transparent 0%,
+                    rgba(0,255,204,0.05) 20%,
+                    rgba(100,0,255,0.04) 40%,
+                    rgba(0,255,100,0.06) 60%,
+                    rgba(255,0,170,0.03) 80%,
+                    transparent 100%
+                );
+            animation: auroraShimmer 8s ease-in-out infinite;
+            filter: blur(30px);
+        }
+
+        @keyframes auroraShimmer {
+            0%, 100% { transform: translateX(-5%) scaleY(1); opacity: 0.2; }
+            33% { transform: translateX(3%) scaleY(1.2); opacity: 0.4; }
+            66% { transform: translateX(-2%) scaleY(0.9); opacity: 0.3; }
+        }
+
+        /* Warp speed lines (subtle, showing the journey) */
+        .warp-lines {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+            opacity: 0.15;
+        }
+
+        .warp-line {
+            position: absolute;
+            width: 1px;
+            background: linear-gradient(to bottom, transparent, rgba(200,220,255,0.6), transparent);
+            transform-origin: top center;
+            animation: warpStreak linear infinite;
+        }
+
+        @keyframes warpStreak {
+            0% { transform: translateY(-100%) scaleY(0.5); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(100vh) scaleY(1.5); opacity: 0; }
         }
         
         .ui-overlay {
@@ -33,8 +315,15 @@
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
+            height: 100vh;
             pointer-events: none;
+            z-index: 10;
+            opacity: 1;
+            transition: opacity 0.35s ease;
+        }
+        .ui-overlay.hidden {
+            opacity: 0;
+            pointer-events: none !important;
         }
         .ui-overlay * {
             pointer-events: auto;
@@ -69,14 +358,22 @@
             font-size: clamp(0.75rem, 2vw, 1.1rem);
             font-weight: 600;
             letter-spacing: 1px;
-            background: linear-gradient(90deg, #00ffcc, #ff00aa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: none;
+           background: linear-gradient(90deg, #e7e7e7, #8aff00);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: #c0ff0042;
+           background-clip: text;
+           text-shadow: none;
             animation: glowPulse 2s ease-in-out infinite;
             opacity: 0.9;
             margin-top: 8px;
+        }
+
+  
+        }
+
+        @keyframes taglineFade {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
         }
         
         @keyframes titlePulse {
@@ -259,7 +556,7 @@
             height: 300px;
             border-radius: 50%;
             filter: blur(80px);
-            opacity: 0.3;
+            opacity: 0.25;
             pointer-events: none;
             animation: orbFloat 8s ease-in-out infinite;
             z-index: 0;
@@ -277,6 +574,16 @@
             background: #ff00aa;
             animation-delay: -4s;
         }
+
+        .orb-3 {
+            top: 40%;
+            right: 20%;
+            background: #6c3aed;
+            width: 250px;
+            height: 250px;
+            animation-delay: -2s;
+            opacity: 0.15;
+        }
         
         @keyframes orbFloat {
             0%, 100% { transform: translate(0, 0) scale(1); }
@@ -288,10 +595,9 @@
            MOBILE RESPONSIVE STYLES
            ============================================ */
         
-        /* Small phones (under 480px) */
         @media (max-width: 480px) {
             .title {
-                top: 12px;
+                top: 45px;
                 width: 95%;
             }
             
@@ -303,8 +609,11 @@
             .subtitle {
                 font-size: 0.75rem;
             }
+
+            .story-tagline {
+                font-size: 0.55rem;
+            }
             
-            /* Action buttons: full width row below title */
             .action-buttons {
                 position: absolute;
                 top: auto;
@@ -312,7 +621,7 @@
                 left: 50%;
                 right: auto;
                 transform: translateX(-50%);
-                top: 85px;
+                top: 115px;
                 width: calc(100% - 20px);
                 max-width: 400px;
                 justify-content: center;
@@ -329,11 +638,10 @@
             }
             
             .beat-indicator {
-                top: 135px;
+                top: 145px;
                 transform: translateX(-50%) scale(0.8);
             }
             
-            /* Stats: compact single column at bottom */
             .party-stats {
                 position: absolute;
                 bottom: 10px;
@@ -366,7 +674,6 @@
                 font-size: 0.65rem;
             }
             
-            /* Hide controls hint on mobile - use gesture icons instead */
             .controls-hint {
                 display: none;
             }
@@ -375,11 +682,23 @@
                 width: 150px;
                 height: 150px;
                 filter: blur(50px);
-                opacity: 0.2;
+                opacity: 0.15;
+            }
+
+            .nebula {
+                filter: blur(60px);
+                transform: scale(0.6);
+            }
+
+            .city-silhouette {
+                height: 50px;
+            }
+
+            .warp-lines {
+                opacity: 0.08;
             }
         }
         
-        /* Medium phones (481px - 768px) */
         @media (min-width: 481px) and (max-width: 768px) {
             .title {
                 top: 15px;
@@ -441,9 +760,13 @@
                 height: 200px;
                 filter: blur(60px);
             }
+
+            .nebula {
+                filter: blur(80px);
+                transform: scale(0.8);
+            }
         }
         
-        /* Tablets (769px - 1024px) */
         @media (min-width: 769px) and (max-width: 1024px) {
             .title h1 {
                 font-size: clamp(2rem, 4vw, 3rem);
@@ -467,7 +790,6 @@
             }
         }
         
-        /* Landscape mobile */
         @media (max-height: 500px) and (orientation: landscape) {
             .title {
                 top: 5px;
@@ -477,7 +799,7 @@
                 font-size: 1.3rem;
             }
             
-            .subtitle {
+            .subtitle, .story-tagline {
                 display: none;
             }
             
@@ -530,11 +852,10 @@
             }
         }
         
-        /* Mobile tap feedback for aliens */
         .tap-hint {
             display: none;
             position: absolute;
-            bottom: 80px;
+            bottom: 110px;
             left: 50%;
             transform: translateX(-50%);
             color: #00ffcc;
@@ -557,19 +878,743 @@
             50% { opacity: 0.8; }
         }
 
-        /* Prevent text selection on UI elements */
         .ui-overlay {
             -webkit-user-select: none;
             user-select: none;
         }
+
+        /* =====================================================
+           MERGED SITE — SCROLLABLE SECTIONS + NAV + TOKENOMICS
+           ===================================================== */
+
+        :root {
+            --cyan: #00ffcc;
+            --cyan-2: #42f5ff;
+            --purple: #a855f7;
+            --green: #7dff7a;
+            --pink: #ff4fd8;
+            --pink-2: #ff00aa;
+            --yellow: #ffe27a;
+            --white: #eaf7ff;
+            --muted: #97a6c4;
+            --ink: #030510;
+        }
+
+        /* Hero spacer — first viewport is 3D scene */
+        .hero-spacer {
+            position: relative;
+            height: 100vh;
+            width: 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* main scrolling content sits above fixed bg layers */
+        main.page {
+            position: relative;
+            z-index: 8;
+        }
+
+        /* ===== Floating Side Nav (desktop) ===== */
+        .side-nav {
+            position: fixed;
+            right: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            padding: 14px 10px;
+            background: rgba(6, 12, 24, 0.55);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 999px;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.45), 0 0 30px rgba(0,255,204,0.08);
+        }
+        .side-nav a {
+            position: relative;
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.18);
+            border: 1px solid rgba(255,255,255,0.22);
+            transition: all 0.25s ease;
+            text-decoration: none;
+            display: block;
+        }
+        .side-nav a:hover {
+            background: var(--cyan);
+            box-shadow: 0 0 14px var(--cyan);
+            transform: scale(1.25);
+        }
+        .side-nav a.active {
+            background: linear-gradient(135deg, var(--cyan), var(--pink));
+            box-shadow: 0 0 16px rgba(0,255,204,0.7);
+            transform: scale(1.35);
+        }
+        .side-nav a[data-label]::after {
+            content: attr(data-label);
+            position: absolute;
+            right: calc(100% + 14px);
+            top: 50%;
+            transform: translateY(-50%);
+            white-space: nowrap;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--white);
+            background: rgba(6,12,24,0.9);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 6px 12px;
+            border-radius: 999px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        .side-nav a:hover::after,
+        .side-nav a.active::after {
+            opacity: 1;
+            transform: translateY(-50%) translateX(-2px);
+        }
+
+        /* Mobile top nav */
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 50;
+            padding: 8px 10px;
+            background: rgba(6,12,24,0.7);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 999px;
+            backdrop-filter: blur(14px);
+            gap: 6px;
+        }
+        .mobile-nav a {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            display: block;
+            transition: all 0.25s ease;
+        }
+        .mobile-nav a.active {
+            background: var(--cyan);
+            box-shadow: 0 0 10px var(--cyan);
+            width: 22px;
+            border-radius: 4px;
+        }
+
+        /* ===== Section skeleton ===== */
+        .section {
+            position: relative;
+            padding: 110px 24px 90px;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        .section-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 18px;
+            border: 1px solid rgba(255,255,255,0.14);
+            background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+            border-radius: 999px;
+            color: var(--cyan);
+            font-size: 0.7rem;
+            letter-spacing: 0.24em;
+            text-transform: uppercase;
+            font-weight: 700;
+            backdrop-filter: blur(10px);
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-family: 'Space Grotesk', 'Inter', sans-serif;
+            font-size: clamp(2rem, 5vw, 3.4rem);
+            font-weight: 800;
+            line-height: 1.05;
+            letter-spacing: -0.01em;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, #ffffff 0%, #b8fff0 35%, var(--cyan) 65%, var(--purple) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 18px;
+        }
+        .section-lead {
+            color: var(--muted);
+            max-width: 680px;
+            font-size: clamp(0.95rem, 1.4vw, 1.05rem);
+            line-height: 1.65;
+            margin-bottom: 48px;
+        }
+
+        /* Glass utility */
+        .glass-card {
+            background: linear-gradient(160deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03) 60%, rgba(66,245,255,0.03));
+            border: 1px solid rgba(255,255,255,0.10);
+            border-radius: 22px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 18px 48px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08);
+            transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+        }
+        .glass-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(0,255,204,0.25);
+            box-shadow: 0 22px 60px rgba(0,0,0,0.45), 0 0 36px rgba(0,255,204,0.15);
+        }
+
+        /* ===== About / Features grid ===== */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+        }
+        .feature-card {
+            padding: 28px 24px;
+            position: relative;
+            overflow: hidden;
+        }
+        .feature-card .fc-icon {
+            width: 52px; height: 52px;
+            border-radius: 14px;
+            display: grid; place-items: center;
+            font-size: 26px;
+            background: linear-gradient(135deg, rgba(0,255,204,0.16), rgba(168,85,247,0.16));
+            border: 1px solid rgba(255,255,255,0.12);
+            margin-bottom: 18px;
+        }
+        .feature-card h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+        .feature-card p {
+            color: var(--muted);
+            font-size: 0.92rem;
+            line-height: 1.6;
+        }
+
+        /* ===== Tokenomics (adapted from Tokenomics.html, bg removed) ===== */
+        .tok-supply-row {
+            display: flex;
+            justify-content: flex-start;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 32px;
+        }
+        .tok-badge {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 18px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+            backdrop-filter: blur(16px);
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+        .tok-badge strong { color: #fff; margin-left: 2px; }
+        .tok-badge-dot {
+            width: 9px; height: 9px; border-radius: 50%;
+            animation: dotPulse 2s ease-in-out infinite;
+        }
+        @keyframes dotPulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.6; } }
+
+        .tok-layout {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 22px;
+            align-items: stretch;
+        }
+        .tok-chart-card, .tok-info-card { padding: 28px; }
+        .tok-card-top {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            gap: 14px; margin-bottom: 14px;
+        }
+        .tok-card-title {
+            font-size: 1rem; font-weight: 800;
+            letter-spacing: 0.07em; text-transform: uppercase;
+            color: #fff;
+        }
+        .tok-card-sub { color: var(--muted); font-size: 0.8rem; margin-top: 5px; }
+        .tok-mini-badge {
+            padding: 8px 14px; border-radius: 999px;
+            border: 1px solid rgba(125,255,122,0.3);
+            background: rgba(125,255,122,0.08);
+            color: var(--green);
+            font-size: 0.66rem;
+            letter-spacing: 0.16em; text-transform: uppercase; font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .tok-chart-wrap {
+            position: relative;
+            width: min(100%, 420px);
+            margin: 8px auto 12px;
+            aspect-ratio: 1/1;
+        }
+        .tok-chart-wrap canvas { width: 100% !important; height: 100% !important; }
+        .tok-center-orb {
+            position: absolute; left: 50%; top: 50%;
+            transform: translate(-50%, -50%);
+            width: 32%; aspect-ratio: 1/1;
+            border-radius: 50%;
+            display: grid; place-items: center;
+            text-align: center;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.18), rgba(5,8,22,0.95) 78%);
+            border: 1px solid rgba(255,255,255,0.14);
+            box-shadow: 0 0 32px rgba(0,255,204,0.3), inset 0 0 28px rgba(168,85,247,0.2);
+            pointer-events: none;
+        }
+        .tok-center-label { font-size: 9.5px; letter-spacing: 0.18em; color: var(--muted); text-transform: uppercase; }
+        .tok-center-value { font-size: 1.25rem; color: #fff; font-weight: 900; margin-top: 3px; }
+
+        .tok-legend {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 14px;
+        }
+        .tok-leg-item {
+            padding: 12px;
+            border-radius: 16px;
+            background: linear-gradient(160deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; gap: 10px;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+        .tok-leg-item:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.22); }
+        .tok-leg-dot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; }
+        .tok-leg-title { font-size: 0.75rem; font-weight: 700; color: #fff; }
+        .tok-leg-val { font-size: 1rem; font-weight: 900; }
+        .tok-leg-sub { color: var(--muted); font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.12em; margin-top: 2px; }
+
+        .tok-stats { display: flex; flex-direction: column; gap: 10px; }
+        .tok-stat {
+            padding: 16px 18px; border-radius: 18px;
+            background: linear-gradient(160deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .tok-stat:hover { transform: translateX(5px); }
+        .tok-stat-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+        .tok-stat-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .tok-chip {
+            width: 42px; height: 42px; border-radius: 12px;
+            display: grid; place-items: center;
+            background: linear-gradient(160deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
+            border: 1px solid rgba(255,255,255,0.14);
+            font-size: 20px;
+            flex: 0 0 auto;
+        }
+        .tok-stat-name { font-weight: 800; font-size: 0.92rem; color: #fff; }
+        .tok-stat-desc { color: var(--muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 2px; }
+        .tok-pct { font-size: 1.4rem; font-weight: 900; flex-shrink: 0; }
+
+        .tok-bar {
+            margin-top: 10px;
+            height: 8px; border-radius: 999px;
+            background: rgba(255,255,255,0.06);
+            overflow: hidden; position: relative;
+        }
+        .tok-fill {
+            height: 100%; border-radius: 999px; position: relative;
+            transform: scaleX(0); transform-origin: left;
+            transition: transform 1.4s cubic-bezier(.22,1,.36,1);
+        }
+        .tok-fill.animate { transform: scaleX(1); }
+        .tok-fill::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+            transform: translateX(-100%);
+            animation: shineMove 2.6s ease infinite 1.5s;
+        }
+        @keyframes shineMove { 0%{transform:translateX(-100%)} 100%{transform:translateX(300%)} }
+
+        .tok-trust {
+            margin-top: 16px;
+            padding: 20px 22px; border-radius: 20px;
+            background: linear-gradient(135deg, rgba(0,255,204,0.08), rgba(168,85,247,0.07));
+            border: 1px solid rgba(255,255,255,0.13);
+            box-shadow: inset 0 0 30px rgba(0,255,204,0.06);
+        }
+        .tok-trust-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+        .tok-trust-badge {
+            padding: 5px 12px; border-radius: 999px;
+            font-size: 0.66rem; font-weight: 700;
+            letter-spacing: 0.14em; text-transform: uppercase;
+            border: 1px solid rgba(125,255,122,0.3);
+            background: rgba(125,255,122,0.08);
+            color: var(--green);
+        }
+        .tok-trust-badge.alien { border-color: rgba(66,245,255,0.3); background: rgba(66,245,255,0.08); color: var(--cyan-2); }
+        .tok-trust-badge.beam { border-color: rgba(168,85,247,0.3); background: rgba(168,85,247,0.08); color: var(--purple); }
+        .tok-trust-badge.warp { border-color: rgba(255,226,122,0.3); background: rgba(255,226,122,0.08); color: var(--yellow); }
+        .tok-trust-title {
+            font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.22em;
+            color: var(--cyan-2); margin-bottom: 8px; font-weight: 700;
+        }
+        .tok-trust-copy {
+            font-size: clamp(0.95rem, 1.6vw, 1.1rem);
+            font-weight: 800; line-height: 1.4; color: #fff;
+        }
+        .tok-trust-copy em { color: var(--cyan); font-style: normal; }
+
+        /* ===== Roadmap ===== */
+        .roadmap {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        .roadmap-phase {
+            padding: 24px 22px;
+            position: relative;
+        }
+        .roadmap-phase .rp-num {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.7rem; letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--cyan);
+            margin-bottom: 10px;
+        }
+        .roadmap-phase h4 {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 12px;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .roadmap-phase ul {
+            list-style: none;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .roadmap-phase li {
+            color: var(--muted);
+            font-size: 0.86rem;
+            padding-left: 18px;
+            position: relative;
+            line-height: 1.5;
+        }
+        .roadmap-phase li::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 8px;
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--cyan);
+            box-shadow: 0 0 8px var(--cyan);
+        }
+        .roadmap-phase.done li::before { background: var(--green); box-shadow: 0 0 8px var(--green); }
+        .roadmap-phase.upcoming li::before { background: var(--muted); box-shadow: none; opacity: 0.6; }
+
+        .rp-status {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.62rem;
+            font-weight: 700; letter-spacing: 0.14em;
+            text-transform: uppercase;
+            margin-top: 16px;
+        }
+        .rp-status.done { background: rgba(125,255,122,0.12); color: var(--green); border: 1px solid rgba(125,255,122,0.3); }
+        .rp-status.live { background: rgba(0,255,204,0.12); color: var(--cyan); border: 1px solid rgba(0,255,204,0.3); }
+        .rp-status.soon { background: rgba(168,85,247,0.12); color: var(--purple); border: 1px solid rgba(168,85,247,0.3); }
+        .rp-status.upcoming { background: rgba(255,255,255,0.06); color: var(--muted); border: 1px solid rgba(255,255,255,0.1); }
+
+        /* ===== FAQ ===== */
+        .faq-list { display: flex; flex-direction: column; gap: 12px; }
+        .faq-item {
+            padding: 0;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .faq-item summary {
+            padding: 20px 24px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            list-style: none;
+            cursor: pointer;
+            user-select: none;
+        }
+        .faq-item summary::-webkit-details-marker { display: none; }
+        .faq-item summary::after {
+            content: '+';
+            font-size: 1.4rem;
+            color: var(--cyan);
+            font-weight: 300;
+            transition: transform 0.3s ease;
+        }
+        .faq-item[open] summary::after {
+            transform: rotate(45deg);
+        }
+        .faq-item p {
+            padding: 0 24px 22px;
+            color: var(--muted);
+            font-size: 0.92rem;
+            line-height: 1.65;
+        }
+
+        /* ===== CTA & Community ===== */
+        .community-cta {
+            padding: 56px 40px;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(0,255,204,0.06), rgba(168,85,247,0.08));
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 28px;
+            backdrop-filter: blur(20px);
+            position: relative;
+            overflow: hidden;
+        }
+        .community-cta h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(1.6rem, 4vw, 2.6rem);
+            font-weight: 800;
+            margin-bottom: 14px;
+            color: #fff;
+            letter-spacing: -0.01em;
+        }
+        .community-cta p {
+            color: var(--muted);
+            max-width: 520px;
+            margin: 0 auto 28px;
+            line-height: 1.6;
+        }
+        .cta-buttons { display: inline-flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+        .cta-btn {
+            padding: 13px 26px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.88rem;
+            text-decoration: none;
+            letter-spacing: 0.04em;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid transparent;
+        }
+        .cta-primary {
+            background: linear-gradient(90deg, var(--cyan), var(--cyan-2));
+            color: #000;
+            box-shadow: 0 8px 28px rgba(0,255,204,0.4);
+        }
+        .cta-primary:hover { transform: translateY(-3px); box-shadow: 0 12px 36px rgba(0,255,204,0.6); }
+        .cta-secondary {
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(255,255,255,0.15);
+            color: #fff;
+        }
+        .cta-secondary:hover { background: rgba(255,255,255,0.1); transform: translateY(-3px); }
+
+        /* ===== Footer ===== */
+        footer.site-footer {
+            padding: 50px 24px 32px;
+            max-width: 1280px;
+            margin: 0 auto;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.82rem;
+            position: relative;
+            z-index: 8;
+        }
+        .footer-brand {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 10px;
+            letter-spacing: 0.08em;
+        }
+        .footer-socials { display: inline-flex; gap: 16px; margin-bottom: 18px; }
+        .footer-socials a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.82rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            transition: color 0.2s ease;
+        }
+        .footer-socials a:hover { color: var(--cyan); }
+        .footer-disclaimer {
+            font-size: 0.72rem;
+            line-height: 1.6;
+            max-width: 680px;
+            margin: 18px auto 0;
+            opacity: 0.65;
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 980px) {
+            .feature-grid { grid-template-columns: 1fr; }
+            .tok-layout { grid-template-columns: 1fr; }
+            .roadmap { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 768px) {
+            .side-nav { display: none; }
+            .mobile-nav { display: flex; }
+            .section { padding: 80px 16px 60px; }
+            .tok-chart-card, .tok-info-card { padding: 20px; }
+            .tok-legend { grid-template-columns: 1fr 1fr; }
+            .community-cta { padding: 38px 22px; }
+        }
+        @media (max-width: 520px) {
+            .roadmap { grid-template-columns: 1fr; }
+            .tok-legend { grid-template-columns: 1fr; }
+        }
+
+        /* Content readability overlay — darkens 3D behind non-hero sections */
+        .content-veil {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 2;
+            pointer-events: none;
+            background: linear-gradient(
+                to bottom,
+                rgba(2, 8, 16, 0) 0%,
+                rgba(2, 8, 16, 0) 55%,
+                rgba(2, 8, 16, 0.55) 80%,
+                rgba(2, 8, 16, 0.78) 100%
+            );
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .content-veil.active {
+            opacity: 1;
+        }
+
+        /* Reveal-on-scroll */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        .reveal.in-view {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
-    <div id="canvas-container"></div>
-    
+
+    <!-- ===== LAYERED STORY BACKGROUND ===== -->
+    <div class="bg-deep-space"></div>
+
+    <!-- Star field canvas -->
+    <div class="stars-layer">
+        <canvas id="starsCanvas"></canvas>
+    </div>
+
+    <!-- Nebula glow patches -->
+    <div class="nebula nebula-1"></div>
+    <div class="nebula nebula-2"></div>
+    <div class="nebula nebula-3"></div>
+    <div class="nebula nebula-4"></div>
+
+    <!-- Aurora atmospheric effect -->
+    <div class="aurora"></div>
+
+    <!-- Warp speed lines -->
+    <div class="warp-lines" id="warpLines"></div>
+
+    <!-- Distant UFO fleet -->
+    <div class="distant-fleet">
+        <div class="fleet-ufo fleet-ufo-1"></div>
+        <div class="fleet-ufo fleet-ufo-2"></div>
+        <div class="fleet-ufo fleet-ufo-3"></div>
+        <div class="fleet-ufo fleet-ufo-4"></div>
+        <div class="fleet-ufo fleet-ufo-5"></div>
+    </div>
+
+    <!-- Shooting stars -->
+    <div class="shooting-star shooting-star-1"></div>
+    <div class="shooting-star shooting-star-2"></div>
+    <div class="shooting-star shooting-star-3"></div>
+
+    <!-- Earth horizon glow -->
+    <div class="earth-horizon"></div>
+    <div class="atmosphere-entry"></div>
+
+    <!-- City silhouette -->
+    <div class="city-silhouette">
+        <svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="cityGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="rgba(0,40,60,0.9)"/>
+                    <stop offset="100%" stop-color="rgba(0,15,25,1)"/>
+                </linearGradient>
+            </defs>
+            <path d="M0,80 L0,55 L30,55 L30,45 L40,45 L40,40 L50,40 L50,45 L60,45 L60,50 L80,50 L80,35 L85,35 L85,30 L90,30 L90,25 L95,25 L95,30 L100,30 L100,40 L120,40 L120,48 L140,48 L140,38 L148,38 L148,28 L155,28 L155,20 L162,20 L162,28 L170,28 L170,42 L190,42 L190,50 L210,50 L210,45 L220,45 L220,35 L228,35 L228,22 L232,22 L232,15 L238,15 L238,12 L242,12 L242,15 L248,15 L248,22 L252,22 L252,38 L270,38 L270,50 L290,50 L290,42 L310,42 L310,32 L315,32 L315,18 L320,18 L320,14 L328,14 L328,18 L332,18 L332,32 L340,32 L340,44 L360,44 L360,50 L380,50 L380,46 L400,46 L400,38 L410,38 L410,28 L418,28 L418,15 L422,15 L422,10 L428,10 L428,15 L432,15 L432,28 L440,28 L440,42 L460,42 L460,50 L480,50 L480,52 L510,52 L510,44 L520,44 L520,36 L528,36 L528,24 L535,24 L535,18 L540,18 L540,24 L548,24 L548,36 L560,36 L560,48 L580,48 L580,52 L610,52 L610,46 L630,46 L630,40 L640,40 L640,30 L645,30 L645,22 L652,22 L652,16 L658,16 L658,22 L665,22 L665,30 L670,30 L670,40 L690,40 L690,50 L720,50 L720,55 L740,55 L740,48 L760,48 L760,38 L768,38 L768,25 L772,25 L772,18 L778,18 L778,12 L782,12 L782,18 L788,18 L788,25 L792,25 L792,38 L800,38 L800,48 L820,48 L820,52 L850,52 L850,46 L870,46 L870,42 L880,42 L880,32 L888,32 L888,20 L892,20 L892,14 L898,14 L898,8 L902,8 L902,14 L908,14 L908,20 L912,20 L912,35 L920,35 L920,44 L940,44 L940,50 L970,50 L970,55 L990,55 L990,48 L1010,48 L1010,40 L1020,40 L1020,28 L1028,28 L1028,18 L1032,18 L1032,12 L1038,12 L1038,18 L1042,18 L1042,28 L1050,28 L1050,42 L1070,42 L1070,50 L1100,50 L1100,46 L1120,46 L1120,38 L1130,38 L1130,28 L1135,28 L1135,20 L1140,20 L1140,14 L1148,14 L1148,20 L1152,20 L1152,28 L1160,28 L1160,40 L1180,40 L1180,50 L1200,50 L1200,52 L1230,52 L1230,46 L1250,46 L1250,42 L1260,42 L1260,35 L1268,35 L1268,25 L1275,25 L1275,18 L1280,18 L1280,25 L1288,25 L1288,38 L1300,38 L1300,48 L1320,48 L1320,52 L1350,52 L1350,55 L1380,55 L1380,50 L1400,50 L1400,48 L1420,48 L1420,52 L1440,52 L1440,80 Z" 
+                  fill="url(#cityGrad)"/>
+            <!-- Window lights -->
+            <g fill="rgba(255,220,100,0.6)">
+                <rect x="92" y="27" width="2" height="2" rx="0.5"/>
+                <rect x="157" y="23" width="2" height="2" rx="0.5"/>
+                <rect x="234" y="14" width="2" height="2" rx="0.5"/>
+                <rect x="240" y="17" width="1.5" height="1.5" rx="0.5"/>
+                <rect x="317" y="16" width="2" height="2" rx="0.5"/>
+                <rect x="325" y="19" width="1.5" height="1.5" rx="0.5"/>
+                <rect x="420" y="13" width="2" height="2" rx="0.5"/>
+                <rect x="426" y="17" width="1.5" height="1.5" rx="0.5"/>
+                <rect x="537" y="20" width="2" height="2" rx="0.5"/>
+                <rect x="654" y="19" width="2" height="2" rx="0.5"/>
+                <rect x="774" y="15" width="2" height="2" rx="0.5"/>
+                <rect x="780" y="20" width="1.5" height="1.5" rx="0.5"/>
+                <rect x="894" y="12" width="2" height="2" rx="0.5"/>
+                <rect x="900" y="16" width="1.5" height="1.5" rx="0.5"/>
+                <rect x="1034" y="15" width="2" height="2" rx="0.5"/>
+                <rect x="1142" y="17" width="2" height="2" rx="0.5"/>
+                <rect x="1148" y="22" width="1.5" height="1.5" rx="0.5"/>
+                <rect x="1277" y="21" width="2" height="2" rx="0.5"/>
+            </g>
+            <!-- Colored window lights -->
+            <g fill="rgba(0,200,255,0.5)">
+                <rect x="88" y="32" width="1.5" height="1.5" rx="0.5"/>
+                <rect x="320" y="22" width="1.5" height="1.5" rx="0.5"/>
+                <rect x="540" y="26" width="1.5" height="1.5" rx="0.5"/>
+                <rect x="897" y="18" width="1.5" height="1.5" rx="0.5"/>
+                <rect x="1037" y="20" width="1.5" height="1.5" rx="0.5"/>
+            </g>
+            <g fill="rgba(255,100,150,0.4)">
+                <rect x="160" y="28" width="1.5" height="1.5" rx="0.5"/>
+                <rect x="423" y="20" width="1.5" height="1.5" rx="0.5"/>
+                <rect x="657" y="24" width="1.5" height="1.5" rx="0.5"/>
+                <rect x="777" y="22" width="1.5" height="1.5" rx="0.5"/>
+                <rect x="1145" y="24" width="1.5" height="1.5" rx="0.5"/>
+            </g>
+        </svg>
+    </div>
+
+    <!-- Glow orbs -->
     <div class="glow-orb orb-1"></div>
     <div class="glow-orb orb-2"></div>
+    <div class="glow-orb orb-3"></div>
+
+    <!-- Three.js canvas -->
+    <div id="canvas-container"></div>
     
+    <!-- UI Overlay -->
     <div class="ui-overlay">
         <div class="title">
             <h1>ALIEN PARTY INVASION</h1>
@@ -631,11 +1676,410 @@
         </div>
         
         <div class="controls-hint">
-            Drag to rotate | Scroll to zoom | Click aliens to make them dance!
+            Drag to rotate · Click aliens to make them dance · Scroll to explore
         </div>
 
-        <div class="tap-hint">👆 Tap aliens to make them dance!</div>
+        <div class="tap-hint">👆 Tap aliens to dance · Swipe up to explore</div>
     </div>
+
+    <!-- Floating Side Nav (desktop) -->
+    <nav class="side-nav" id="sideNav" aria-label="Section navigation">
+        <a href="#hero" data-label="Home" data-section="hero" class="active"></a>
+        <a href="#about" data-label="About" data-section="about"></a>
+        <a href="#tokenomics" data-label="Tokenomics" data-section="tokenomics"></a>
+        <a href="#roadmap" data-label="Roadmap" data-section="roadmap"></a>
+        <a href="#faq" data-label="FAQ" data-section="faq"></a>
+        <a href="#join" data-label="Join" data-section="join"></a>
+    </nav>
+
+    <!-- Mobile Top Nav -->
+    <nav class="mobile-nav" id="mobileNav" aria-label="Section navigation">
+        <a href="#hero" data-section="hero" class="active"></a>
+        <a href="#about" data-section="about"></a>
+        <a href="#tokenomics" data-section="tokenomics"></a>
+        <a href="#roadmap" data-section="roadmap"></a>
+        <a href="#faq" data-section="faq"></a>
+        <a href="#join" data-section="join"></a>
+    </nav>
+
+    <!-- Hero takes the first viewport so the 3D scene is visible -->
+    <div id="hero" class="hero-spacer"></div>
+    <div class="content-veil" id="contentVeil"></div>
+
+    <main class="page">
+        <!-- ============ ABOUT ============ -->
+        <section id="about" class="section reveal">
+            <div class="section-eyebrow">🛸 Transmission · Sector 7-G</div>
+            <h2 class="section-title">A Meme From Beyond<br/>The Milky Way.</h2>
+            <p class="section-lead">
+                Alien Party Invasion is more than a meme — it's an intergalactic movement engineered
+                on Solana. Zero-tax, rug-proof, and built by a crew that ships. Transparent by design,
+                loud by nature, and optimized for warp-speed holders.
+            </p>
+
+            <div class="feature-grid">
+                <div class="glass-card feature-card">
+                    <div class="fc-icon">⚡</div>
+                    <h3>Lightning-Fast Solana</h3>
+                    <p>Sub-second confirmations, fractional-cent fees. Trade at the speed of light without breaking orbit.</p>
+                </div>
+                <div class="glass-card feature-card">
+                    <div class="fc-icon">🔒</div>
+                    <h3>Rug-Proof Architecture</h3>
+                    <p>Mint authority revoked. Liquidity locked. Contract verified. No hidden switches, no back doors.</p>
+                </div>
+                <div class="glass-card feature-card">
+                    <div class="fc-icon">🌐</div>
+                    <h3>Community-First Economy</h3>
+                    <p>Built for the holders, powered by memes, and amplified by a galaxy of party-ready aliens.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ TOKENOMICS ============ -->
+        <section id="tokenomics" class="section reveal">
+            <div class="section-eyebrow">💠 On-Chain Economics</div>
+            <h2 class="section-title">Galactic Tokenomics</h2>
+            <p class="section-lead">
+                A transparent, neon-distributed supply split — engineered for liquidity, trust and
+                unstoppable expansion across the galaxy.
+            </p>
+
+            <div class="tok-supply-row">
+                <div class="tok-badge"><div class="tok-badge-dot" style="background:var(--cyan);box-shadow:0 0 10px var(--cyan)"></div>Total Supply <strong>1,000,000,000</strong></div>
+                <div class="tok-badge"><div class="tok-badge-dot" style="background:var(--green);box-shadow:0 0 10px var(--green)"></div>Network <strong>Solana</strong></div>
+                <div class="tok-badge"><div class="tok-badge-dot" style="background:var(--pink);box-shadow:0 0 10px var(--pink)"></div>Mint Authority <strong>Revoked</strong></div>
+                <div class="tok-badge"><div class="tok-badge-dot" style="background:var(--yellow);box-shadow:0 0 10px var(--yellow)"></div>Tax <strong>0 / 0</strong></div>
+            </div>
+
+            <div class="tok-layout">
+                <div class="glass-card tok-chart-card">
+                    <div class="tok-card-top">
+                        <div>
+                            <div class="tok-card-title">Galactic Supply Split</div>
+                            <div class="tok-card-sub">Neon-distributed for trust, liquidity &amp; expansion</div>
+                        </div>
+                        <div class="tok-mini-badge">🛸 Hologram Active</div>
+                    </div>
+
+                    <div class="tok-chart-wrap">
+                        <canvas id="tokenChart"></canvas>
+                        <div class="tok-center-orb">
+                            <div>
+                                <div class="tok-center-label">Total Supply</div>
+                                <div class="tok-center-value">100%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tok-legend">
+                        <div class="tok-leg-item">
+                            <div class="tok-leg-dot" style="background:#42f5ff;box-shadow:0 0 10px #42f5ff"></div>
+                            <div>
+                                <div class="tok-leg-title">Liquidity</div>
+                                <div class="tok-leg-val" style="color:#42f5ff">85%</div>
+                                <div class="tok-leg-sub">Core Stability</div>
+                            </div>
+                        </div>
+                        <div class="tok-leg-item">
+                            <div class="tok-leg-dot" style="background:#a855f7;box-shadow:0 0 10px #a855f7"></div>
+                            <div>
+                                <div class="tok-leg-title">Team</div>
+                                <div class="tok-leg-val" style="color:#a855f7">10%</div>
+                                <div class="tok-leg-sub">Mission HQ</div>
+                            </div>
+                        </div>
+                        <div class="tok-leg-item">
+                            <div class="tok-leg-dot" style="background:#7dff7a;box-shadow:0 0 10px #7dff7a"></div>
+                            <div>
+                                <div class="tok-leg-title">Community</div>
+                                <div class="tok-leg-val" style="color:#7dff7a">5%</div>
+                                <div class="tok-leg-sub">Party Fuel</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card tok-info-card">
+                    <div class="tok-card-top">
+                        <div>
+                            <div class="tok-card-title">Allocation Breakdown</div>
+                            <div class="tok-card-sub">Every token has a purpose — transparent by design</div>
+                        </div>
+                        <div style="font-size:28px">👾</div>
+                    </div>
+
+                    <div class="tok-stats">
+                        <div class="tok-stat">
+                            <div class="tok-stat-head">
+                                <div class="tok-stat-left">
+                                    <div class="tok-chip">🛸</div>
+                                    <div>
+                                        <div class="tok-stat-name">Liquidity Locked</div>
+                                        <div class="tok-stat-desc">Long-term launch confidence</div>
+                                    </div>
+                                </div>
+                                <div class="tok-pct" style="color:#42f5ff">85%</div>
+                            </div>
+                            <div class="tok-bar"><div class="tok-fill" data-width="85" style="background:linear-gradient(90deg,#42f5ff,#8cfaff)"></div></div>
+                            <div style="margin-top:10px;font-size:0.74rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;font-weight:700">850M tokens</div>
+                        </div>
+
+                        <div class="tok-stat">
+                            <div class="tok-stat-head">
+                                <div class="tok-stat-left">
+                                    <div class="tok-chip">👽</div>
+                                    <div>
+                                        <div class="tok-stat-name">Team Reserve</div>
+                                        <div class="tok-stat-desc">Core builders &amp; operations</div>
+                                    </div>
+                                </div>
+                                <div class="tok-pct" style="color:#a855f7">10%</div>
+                            </div>
+                            <div class="tok-bar"><div class="tok-fill" data-width="10" style="background:linear-gradient(90deg,#a855f7,#d8b4fe)"></div></div>
+                            <div style="margin-top:10px;font-size:0.74rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;font-weight:700">100M tokens</div>
+                        </div>
+
+                        <div class="tok-stat">
+                            <div class="tok-stat-head">
+                                <div class="tok-stat-left">
+                                    <div class="tok-chip">🎉</div>
+                                    <div>
+                                        <div class="tok-stat-name">Community Rewards</div>
+                                        <div class="tok-stat-desc">Meme energy for the galaxy</div>
+                                    </div>
+                                </div>
+                                <div class="tok-pct" style="color:#7dff7a">5%</div>
+                            </div>
+                            <div class="tok-bar"><div class="tok-fill" data-width="5" style="background:linear-gradient(90deg,#7dff7a,#b9ffb7)"></div></div>
+                            <div style="margin-top:10px;font-size:0.74rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;font-weight:700">50M tokens</div>
+                        </div>
+                    </div>
+
+                    <div class="tok-trust">
+                        <div class="tok-trust-badges">
+                            <div class="tok-trust-badge">✅ Rug-Proof</div>
+                            <div class="tok-trust-badge">✅ LP Locked</div>
+                            <div class="tok-trust-badge alien">👽 Alien Verified</div>
+                            <div class="tok-trust-badge beam">🔮 Beam Protocol</div>
+                            <div class="tok-trust-badge warp">🛸 Warp-Speed LP</div>
+                        </div>
+                        <div class="tok-trust-title">— Launch Integrity Signal —</div>
+                        <div class="tok-trust-copy">
+                            No Rug. No Fear.<br/>
+                            Only <em>Party Across The Galaxy</em>. 🛸
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ ROADMAP ============ -->
+        <section id="roadmap" class="section reveal">
+            <div class="section-eyebrow">🚀 Mission Trajectory</div>
+            <h2 class="section-title">The Invasion Roadmap</h2>
+            <p class="section-lead">
+                Four phases. One mission: take the meme game interstellar. We ship publicly, on time,
+                on-chain, and in full view of the galaxy.
+            </p>
+
+            <div class="roadmap">
+                <div class="glass-card roadmap-phase done">
+                    <div class="rp-num">Phase 01</div>
+                    <h4>Landing</h4>
+                    <ul>
+                        <li>Stealth deploy on Solana</li>
+                        <li>Liquidity seeded &amp; locked</li>
+                        <li>Mint authority revoked</li>
+                        <li>Community rally-point opens</li>
+                    </ul>
+                    <div class="rp-status done">● Completed</div>
+                </div>
+                <div class="glass-card roadmap-phase">
+                    <div class="rp-num">Phase 02</div>
+                    <h4>Signal Boost</h4>
+                    <ul>
+                        <li>Listing on Pump.fun &amp; Raydium</li>
+                        <li>Influencer &amp; KOL activation</li>
+                        <li>First community Build</li>
+                        <li>Trending on CEX radars</li>
+                    </ul>
+                    <div class="rp-status live">● Live Now</div>
+                </div>
+                <div class="glass-card roadmap-phase">
+                    <div class="rp-num">Phase 03</div>
+                    <h4>Warp Speed</h4>
+                    <ul>
+                        <li>CoinGecko &amp; CoinMarketCap listing</li>
+                        <li> Vision Tier-1 CEX partnerships</li>
+                        <li>NFT collectibles</li>
+                        <li>Make New Projects & Dex</li>
+                    </ul>
+                    <div class="rp-status soon">● Q2 2026</div>
+                </div>
+                <div class="glass-card roadmap-phase upcoming">
+                    <div class="rp-num">Phase 04</div>
+                    <h4>Galactic Era</h4>
+                    <ul>
+                        <li>Alien Party on space </li>
+                        <li>On-chain utility release</li>
+                        <li> Grow Ecosystem</li>
+                        <li> DAO </li>
+                    </ul>
+                    <div class="rp-status upcoming">○ Upcoming</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ FAQ ============ -->
+        <section id="faq" class="section reveal">
+            <div class="section-eyebrow">📡 Intercepted Questions</div>
+            <h2 class="section-title">Frequently Asked.<br/>Clearly Answered.</h2>
+            <p class="section-lead">
+                Everything you need to know before joining the party. Still have questions? Ping us on
+                Telegram — the crew is online around the clock.
+            </p>
+
+            <div class="faq-list">
+                <details class="glass-card faq-item">
+                    <summary>What is Alien Party Invasion?</summary>
+                    <p>Alien Party Invasion is a community-driven meme token on Solana. Zero-tax, transparent tokenomics, rug-proof architecture, and a wild alien-rave aesthetic that’s built to spread across the galaxy.</p>
+                </details>
+                <details class="glass-card faq-item">
+                    <summary>How do I buy it?</summary>
+                    <p>Grab SOL on any exchange, transfer to a Solana wallet (Phantom, Solflare), and swap on Pump.fun or Raydium using the buttons at the top of the site. Always double-check the contract address against our official channels.</p>
+                </details>
+                <details class="glass-card faq-item">
+                    <summary>Is liquidity locked? Is the mint revoked?</summary>
+                    <p>Yes — liquidity is locked and mint authority is revoked at launch. You can verify both on-chain. This is non-negotiable for us: trust is the launchpad.</p>
+                </details>
+                <details class="glass-card faq-item">
+                    <summary>Is there a tax on buys or sells?</summary>
+                    <p>Zero. No buy tax. No sell tax. 100% of what you trade goes into your position — the way a fair meme should be.</p>
+                </details>
+                <details class="glass-card faq-item">
+                    <summary>Who is behind the project?</summary>
+                    <p>A small crew of anon builders who’ve shipped before and a growing community of alien-party believers. We prioritize execution, transparency, and memes that land harder than a flying saucer.</p>
+                </details>
+            </div>
+        </section>
+
+        <!-- ============ JOIN / CTA ============ -->
+        <section id="join" class="section reveal" style="padding-bottom: 40px;">
+            <div class="community-cta">
+                <h2>Ready to Join the Invasion?</h2>
+                <p>Millions of aliens are already partying. Grab your bag, turn up the beat, and let’s make first contact with the moon.</p>
+                <div class="cta-buttons">
+                    <a href="https://pump.fun/coin/YOURTOKEN" target="_blank" rel="noopener" class="cta-btn cta-primary">🛸 Buy on Pump.fun</a>
+                    <a href="https://t.me/yourlink" target="_blank" rel="noopener" class="cta-btn cta-secondary">💬 Join Telegram</a>
+                    <a href="https://x.com/yourlink" target="_blank" rel="noopener" class="cta-btn cta-secondary">𝕏 Follow on X</a>
+                </div>
+            </div>
+        </section>
+
+        <footer class="site-footer">
+            <div class="footer-brand">ALIEN PARTY INVASION</div>
+            <div class="footer-socials">
+                <a href="https://x.com/yourlink" target="_blank" rel="noopener">X / Twitter</a>
+                <a href="https://t.me/yourlink" target="_blank" rel="noopener">Telegram</a>
+                <a href="https://pump.fun/coin/YOURTOKEN" target="_blank" rel="noopener">Pump.fun</a>
+                <a href="https://raydium.io/swap/" target="_blank" rel="noopener">Raydium</a>
+            </div>
+            <div>© 2026 Alien Party Invasion · Built on Solana · Powered by memes</div>
+            <div class="footer-disclaimer">
+                Cryptocurrency is highly volatile. Alien Party Invasion is a meme token — it has no intrinsic value
+                or expectation of financial return. Always do your own research. Never invest more than you can afford to lose.
+            </div>
+        </footer>
+    </main>
+
+    <!-- Background star field + warp lines script -->
+    <script>
+        // ===== ANIMATED STAR FIELD =====
+        (function() {
+            const canvas = document.getElementById('starsCanvas');
+            const ctx = canvas.getContext('2d');
+            const isMob = window.innerWidth < 768;
+            
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resize();
+            window.addEventListener('resize', resize);
+
+            const starCount = isMob ? 150 : 350;
+            const stars = [];
+            for (let i = 0; i < starCount; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 2 + 0.3,
+                    speed: Math.random() * 0.3 + 0.05,
+                    twinkleSpeed: Math.random() * 0.02 + 0.005,
+                    twinklePhase: Math.random() * Math.PI * 2,
+                    hue: Math.random() > 0.85 ? (Math.random() > 0.5 ? 180 : 300) : 0,
+                    saturation: Math.random() > 0.85 ? 60 : 0
+                });
+            }
+
+            function drawStars(time) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                stars.forEach(star => {
+                    const twinkle = Math.sin(time * star.twinkleSpeed + star.twinklePhase) * 0.4 + 0.6;
+                    const alpha = twinkle * (star.size / 2.3);
+                    
+                    if (star.hue > 0) {
+                        ctx.fillStyle = `hsla(${star.hue}, ${star.saturation}%, 85%, ${alpha})`;
+                    } else {
+                        ctx.fillStyle = `rgba(220, 230, 255, ${alpha})`;
+                    }
+                    
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y, star.size * twinkle, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Subtle glow for larger stars
+                    if (star.size > 1.5) {
+                        ctx.fillStyle = `rgba(200, 220, 255, ${alpha * 0.15})`;
+                        ctx.beginPath();
+                        ctx.arc(star.x, star.y, star.size * 3, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    
+                    // Very slow drift
+                    star.y += star.speed * 0.1;
+                    if (star.y > canvas.height + 5) {
+                        star.y = -5;
+                        star.x = Math.random() * canvas.width;
+                    }
+                });
+                
+                requestAnimationFrame(drawStars);
+            }
+            
+            requestAnimationFrame(drawStars);
+        })();
+
+        // ===== WARP SPEED LINES =====
+        (function() {
+            const container = document.getElementById('warpLines');
+            const isMob = window.innerWidth < 768;
+            const lineCount = isMob ? 8 : 20;
+            
+            for (let i = 0; i < lineCount; i++) {
+                const line = document.createElement('div');
+                line.className = 'warp-line';
+                line.style.left = (Math.random() * 100) + '%';
+                line.style.height = (20 + Math.random() * 60) + 'px';
+                line.style.animationDuration = (3 + Math.random() * 6) + 's';
+                line.style.animationDelay = (Math.random() * 8) + 's';
+                line.style.opacity = (0.1 + Math.random() * 0.3);
+                container.appendChild(line);
+            }
+        })();
+    </script>
 
     <script type="importmap">
     {
@@ -650,15 +2094,13 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         
-        // Detect mobile for performance adjustments
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
                          || window.innerWidth < 768;
         const isSmallMobile = window.innerWidth < 480;
         
-        // Scene setup
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x0a0a12, isMobile ? 0.025 : 0.02);
+        scene.fog = new THREE.FogExp2(0x020810, isMobile ? 0.025 : 0.02);
         
         const camera = new THREE.PerspectiveCamera(
             isMobile ? 65 : 60, 
@@ -677,6 +2119,7 @@
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
         renderer.shadowMap.enabled = !isSmallMobile;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.setClearColor(0x000000, 0);
         container.appendChild(renderer.domElement);
         
         const controls = new OrbitControls(camera, renderer.domElement);
@@ -686,10 +2129,31 @@
         controls.minDistance = isMobile ? 10 : 8;
         controls.maxDistance = isMobile ? 40 : 35;
         controls.enablePan = false;
+        controls.enableZoom = false; // Disabled — scroll should scroll the page
         controls.touches = {
             ONE: THREE.TOUCH.ROTATE,
             TWO: THREE.TOUCH.DOLLY
         };
+
+        // Only let the 3D scene intercept pointer events when we're in the hero.
+        const canvasContainerEl = document.getElementById('canvas-container');
+        const uiOverlayEl = document.querySelector('.ui-overlay');
+        function updateHeroMode() {
+            const inHero = window.scrollY < window.innerHeight * 0.6;
+            if (inHero) {
+                canvasContainerEl.classList.add('interactive');
+                controls.enabled = true;
+                uiOverlayEl.classList.remove('hidden');
+            } else {
+                canvasContainerEl.classList.remove('interactive');
+                controls.enabled = false;
+                uiOverlayEl.classList.add('hidden');
+            }
+            const veil = document.getElementById('contentVeil');
+            if (veil) veil.classList.toggle('active', window.scrollY > window.innerHeight * 0.35);
+        }
+        updateHeroMode();
+        window.addEventListener('scroll', updateHeroMode, { passive: true });
         
         // Lighting
         const ambientLight = new THREE.AmbientLight(0x222244, 0.5);
@@ -777,7 +2241,6 @@
         function createUFO() {
             const ufoGroup = new THREE.Group();
             
-            // Main saucer body
             const saucerGeom = new THREE.CylinderGeometry(4, 3.5, 0.8, 32);
             const saucerMat = new THREE.MeshStandardMaterial({
                 color: 0xcccccc,
@@ -790,7 +2253,6 @@
             saucer.castShadow = true;
             ufoGroup.add(saucer);
             
-            // Dome
             const domeGeom = new THREE.SphereGeometry(2, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2);
             const domeMat = new THREE.MeshStandardMaterial({
                 color: 0x88ffff,
@@ -805,7 +2267,6 @@
             dome.position.y = 0.4;
             ufoGroup.add(dome);
             
-            // Bottom ring
             const ringGeom = new THREE.TorusGeometry(3.3, 0.2, 16, 48);
             const ringMat = new THREE.MeshStandardMaterial({
                 color: 0xffcc00,
@@ -819,7 +2280,6 @@
             ring.position.y = -0.4;
             ufoGroup.add(ring);
             
-            // Lights around the UFO
             const ufoLights = [];
             for (let i = 0; i < 12; i++) {
                 const angle = (i / 12) * Math.PI * 2;
@@ -837,7 +2297,6 @@
                 ufoLights.push({ mesh: lightMesh, offset: i * 0.5 });
             }
             
-            // Beam of light
             const beamGeom = new THREE.ConeGeometry(2.5, 8, 32, 1, true);
             const beamMat = new THREE.ShaderMaterial({
                 uniforms: {
@@ -888,7 +2347,6 @@
             const alienGroup = new THREE.Group();
             const color = alienColors[colorIndex % alienColors.length];
             
-            // Body
             const bodyGeom = new THREE.CapsuleGeometry(0.4, 0.8, 8, 16);
             const bodyMat = new THREE.MeshStandardMaterial({
                 color: color,
@@ -901,7 +2359,6 @@
             body.castShadow = true;
             alienGroup.add(body);
             
-            // Head
             const headGeom = new THREE.SphereGeometry(0.45, 16, 16);
             headGeom.scale(1, 1.2, 0.9);
             const headMat = new THREE.MeshStandardMaterial({
@@ -916,7 +2373,6 @@
             head.castShadow = true;
             alienGroup.add(head);
             
-            // Eyes
             const eyeGeom = new THREE.SphereGeometry(0.12, 16, 16);
             const eyeMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
             
@@ -928,7 +2384,6 @@
             rightEye.position.set(0.15, 0.95, 0.35);
             alienGroup.add(rightEye);
             
-            // Eye glow
             const glowGeom = new THREE.SphereGeometry(0.08, 16, 16);
             const glowMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
             
@@ -940,7 +2395,6 @@
             rightGlow.position.set(0.15, 0.95, 0.42);
             alienGroup.add(rightGlow);
             
-            // Arms
             const armGeom = new THREE.CapsuleGeometry(0.1, 0.5, 4, 8);
             const armMat = new THREE.MeshStandardMaterial({
                 color: color,
@@ -958,7 +2412,6 @@
             rightArm.rotation.z = -0.3;
             alienGroup.add(rightArm);
             
-            // Legs
             const legGeom = new THREE.CapsuleGeometry(0.12, 0.4, 4, 8);
             const legMat = new THREE.MeshStandardMaterial({
                 color: color,
@@ -985,7 +2438,6 @@
             return alienGroup;
         }
         
-        // Create aliens in circle around UFO
         const alienCount = isMobile ? 6 : 8;
         for (let i = 0; i < alienCount; i++) {
             const alien = createAlien(i);
@@ -1016,7 +2468,6 @@
             const ball = new THREE.Mesh(ballGeom, ballMat);
             discoGroup.add(ball);
             
-            // Mirror tiles effect via shader
             const tilesMat = new THREE.ShaderMaterial({
                 uniforms: {
                     uTime: { value: 0 }
@@ -1061,7 +2512,7 @@
         discoBall.position.set(0, 10, 0);
         scene.add(discoBall);
         
-        // Confetti system - reduced on mobile for performance
+        // Confetti
         const confettiCount = isSmallMobile ? 200 : (isMobile ? 300 : 500);
         const confettiGeometry = new THREE.BufferGeometry();
         const confettiPositions = new Float32Array(confettiCount * 3);
@@ -1137,7 +2588,7 @@
         const confetti = new THREE.Points(confettiGeometry, confettiMaterial);
         scene.add(confetti);
         
-        // Speaker decorations - reduced on mobile
+        // Speakers
         function createSpeaker(x, z, rotation) {
             const speakerGroup = new THREE.Group();
             
@@ -1151,7 +2602,6 @@
             box.castShadow = true;
             speakerGroup.add(box);
             
-            // Speaker cone
             const coneGeom = new THREE.CircleGeometry(0.5, 32);
             const coneMat = new THREE.MeshStandardMaterial({
                 color: 0x111111,
@@ -1162,7 +2612,6 @@
             cone.position.z = 0.61;
             speakerGroup.add(cone);
             
-            // Glow ring
             const ringGeom = new THREE.RingGeometry(0.45, 0.55, 32);
             const ringMat = new THREE.MeshBasicMaterial({
                 color: 0xff00aa,
@@ -1194,7 +2643,7 @@
             scene.add(speakers[i]);
         }
         
-        // Balloons - reduced on mobile
+        // Balloons
         const balloons = [];
         function createBalloon(x, y, z, color) {
             const balloonGroup = new THREE.Group();
@@ -1211,7 +2660,6 @@
             const balloon = new THREE.Mesh(balloonGeom, balloonMat);
             balloonGroup.add(balloon);
             
-            // String
             const stringGeom = new THREE.CylinderGeometry(0.01, 0.01, 1.5, 8);
             const stringMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
             const string = new THREE.Mesh(stringGeom, stringMat);
@@ -1244,7 +2692,7 @@
         document.getElementById('alien-count').textContent = alienCount;
         document.getElementById('confetti-count').textContent = confettiCount;
         
-        // Raycaster for interaction (works with both click and touch)
+        // Raycaster for interaction
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
         let touchStartTime = 0;
@@ -1266,7 +2714,6 @@
                     alien.userData.isExcited = true;
                     alien.userData.excitementTimer = 2;
                     
-                    // Haptic feedback on mobile
                     if (navigator.vibrate) {
                         navigator.vibrate(50);
                     }
@@ -1274,12 +2721,10 @@
             }
         }
         
-        // Mouse click for desktop
         window.addEventListener('click', (event) => {
             handleInteraction(event.clientX, event.clientY);
         });
         
-        // Touch handling for mobile - distinguish tap from drag
         renderer.domElement.addEventListener('touchstart', (event) => {
             if (event.touches.length === 1) {
                 touchStartTime = Date.now();
@@ -1296,7 +2741,6 @@
                 const dy = touch.clientY - touchStartPos.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
                 
-                // Only treat as tap if short duration and minimal movement
                 if (elapsed < 300 && dist < 15) {
                     handleInteraction(touch.clientX, touch.clientY);
                 }
@@ -1311,14 +2755,11 @@
             
             const time = clock.getElapsedTime();
             
-            // Update floor shader
             floorMaterial.uniforms.uTime.value = time;
             
-            // Animate UFO
             ufo.position.y = 6 + Math.sin(time * 0.5) * 0.5;
             ufo.rotation.y = time * 0.2;
             
-            // UFO lights
             if (ufo.userData.lights) {
                 ufo.userData.lights.forEach((lightData, i) => {
                     const scale = 0.8 + Math.sin(time * 5 + lightData.offset) * 0.4;
@@ -1326,12 +2767,10 @@
                 });
             }
             
-            // UFO beam
             if (ufo.userData.beam) {
                 ufo.userData.beam.material.uniforms.uTime.value = time;
             }
             
-            // Animate aliens (dancing!)
             aliens.forEach((alien, i) => {
                 const data = alien.userData;
                 data.dancePhase += data.danceSpeed * 0.016;
@@ -1363,12 +2802,10 @@
                 }
             });
             
-            // Animate disco ball
             discoBall.rotation.y = time * 0.5;
             discoBall.children[1].material.uniforms.uTime.value = time;
             discoBall.position.y = 10 + Math.sin(time) * 0.3;
             
-            // Party lights orbit
             partyLights.forEach((pl, i) => {
                 const angle = pl.baseAngle + time * 0.3;
                 pl.light.position.x = Math.cos(angle) * 8;
@@ -1376,7 +2813,6 @@
                 pl.light.intensity = 2 + Math.sin(time * 3 + i) * 1;
             });
             
-            // Animate confetti
             const positions = confetti.geometry.attributes.position.array;
             for (let i = 0; i < confettiCount; i++) {
                 const vel = confettiVelocities[i];
@@ -1384,7 +2820,6 @@
                 positions[i * 3 + 1] += vel.y;
                 positions[i * 3 + 2] += vel.z + Math.cos(time + i) * 0.01;
                 
-                // Reset if below ground
                 if (positions[i * 3 + 1] < 0) {
                     positions[i * 3] = (Math.random() - 0.5) * 40;
                     positions[i * 3 + 1] = 18 + Math.random() * 5;
@@ -1394,14 +2829,12 @@
             confetti.geometry.attributes.position.needsUpdate = true;
             confettiMaterial.uniforms.uTime.value = time;
             
-            // Animate balloons
             balloons.forEach(balloon => {
                 balloon.position.y = balloon.userData.baseY + Math.sin(time + balloon.userData.phase) * 0.5;
                 balloon.rotation.z = Math.sin(time * 0.5 + balloon.userData.phase) * 0.2;
                 balloon.rotation.x = Math.cos(time * 0.3 + balloon.userData.phase) * 0.1;
             });
             
-            // Animate speakers glow
             speakers.forEach((speaker, i) => {
                 const ring = speaker.children[2];
                 ring.material.opacity = 0.5 + Math.sin(time * 5 + i) * 0.4;
@@ -1415,12 +2848,127 @@
         
         animate();
         
-        // Handle resize
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
     </script>
+
+    <!-- ============ MERGED SITE JS: Nav / Reveal / Chart ============ -->
+    <script>
+        // ----- Section scroll-spy for side nav -----
+        (function() {
+            const sections = ['hero','about','tokenomics','roadmap','faq','join']
+                .map(id => document.getElementById(id))
+                .filter(Boolean);
+            const navLinksAll = document.querySelectorAll('.side-nav a[data-section], .mobile-nav a[data-section]');
+            function setActive(id) {
+                navLinksAll.forEach(a => {
+                    a.classList.toggle('active', a.getAttribute('data-section') === id);
+                });
+            }
+            function onScroll() {
+                const mid = window.scrollY + window.innerHeight * 0.35;
+                let current = 'hero';
+                for (const s of sections) {
+                    if (s.offsetTop <= mid) current = s.id;
+                }
+                setActive(current);
+            }
+            window.addEventListener('scroll', onScroll, { passive: true });
+            onScroll();
+        })();
+
+        // ----- Scroll-reveal -----
+        (function() {
+            const els = document.querySelectorAll('.reveal');
+            const io = new IntersectionObserver(entries => {
+                entries.forEach(e => {
+                    if (e.isIntersecting) {
+                        e.target.classList.add('in-view');
+                        io.unobserve(e.target);
+                    }
+                });
+            }, { threshold: 0.12 });
+            els.forEach(el => io.observe(el));
+        })();
+
+        // ----- Bar fill on-view -----
+        (function() {
+            const fills = document.querySelectorAll('.tok-fill');
+            const io = new IntersectionObserver(entries => {
+                entries.forEach(e => {
+                    if (e.isIntersecting) {
+                        const w = e.target.getAttribute('data-width');
+                        e.target.style.transform = `scaleX(${(w/100).toFixed(4)})`;
+                        e.target.classList.add('animate');
+                        io.unobserve(e.target);
+                    }
+                });
+            }, { threshold: 0.3 });
+            fills.forEach(f => io.observe(f));
+        })();
+
+        // ----- Tokenomics doughnut chart -----
+        (function() {
+            if (typeof Chart === 'undefined') return;
+            const canvas = document.getElementById('tokenChart');
+            if (!canvas) return;
+
+            const glowPlugin = {
+                id: 'glowPlugin',
+                beforeDatasetDraw(chart) {
+                    chart.ctx.save();
+                    chart.ctx.shadowBlur = 28;
+                    chart.ctx.shadowColor = 'rgba(66,245,255,0.45)';
+                },
+                afterDatasetDraw(chart) { chart.ctx.restore(); }
+            };
+            Chart.register(glowPlugin);
+
+            new Chart(canvas, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Liquidity Locked', 'Team Reserve', 'Community Rewards'],
+                    datasets: [{
+                        data: [85, 10, 5],
+                        backgroundColor: ['#42f5ff', '#a855f7', '#7dff7a'],
+                        borderColor: ['rgba(66,245,255,0.9)', 'rgba(168,85,247,0.9)', 'rgba(125,255,122,0.9)'],
+                        borderWidth: 2.5,
+                        hoverOffset: 18,
+                        spacing: 5,
+                        cutout: '64%'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    animation: { animateRotate: true, animateScale: true, duration: 2000, easing: 'easeOutQuart' },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(4,6,18,0.97)',
+                            titleColor: '#eaf7ff',
+                            bodyColor: '#b0d4f0',
+                            borderColor: 'rgba(66,245,255,0.45)',
+                            borderWidth: 1,
+                            padding: 14,
+                            cornerRadius: 12,
+                            displayColors: true,
+                            boxWidth: 10, boxHeight: 10, boxPadding: 4,
+                            callbacks: {
+                                label(ctx) {
+                                    const map = ['850,000,000', '100,000,000', '50,000,000'];
+                                    return [` ${ctx.label}: ${ctx.raw}%`, ` ${map[ctx.dataIndex]} tokens`];
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        })();
+    </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"7f7b0fd8732c4326aae4b9d58d5c514a","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
